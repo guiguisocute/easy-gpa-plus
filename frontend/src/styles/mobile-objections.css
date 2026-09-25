@@ -1,0 +1,68 @@
+@media (max-width: 600px) {
+  .objection-draft-row {
+    display: grid !important;
+    grid-template-columns: 20px minmax(0, 1fr);
+    align-items: start !important;
+    gap: 6px 10px !important;
+  }
+
+  .objection-draft-row > input {
+    margin-top: 10px;
+  }
+
+  .objection-draft-row > [data-ui='text-button'] {
+    grid-column: 2;
+    justify-self: end;
+  }
+
+  .objection-draft-toggle {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, auto) auto;
+    gap: 10px 8px !important;
+    min-height: 44px;
+  }
+
+  .objection-draft-identity {
+    display: flex !important;
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 8px;
+  }
+
+  .objection-draft-identity > span {
+    width: auto !important;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .objection-draft-score {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  .objection-draft-expand {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .objection-draft-summary {
+    grid-column: 1 / 3;
+    grid-row: 2;
+    white-space: normal !important;
+    overflow: visible !important;
+    overflow-wrap: anywhere;
+  }
+
+  .objection-draft-files {
+    grid-column: 3;
+    grid-row: 2;
+    align-self: start;
+  }
+}

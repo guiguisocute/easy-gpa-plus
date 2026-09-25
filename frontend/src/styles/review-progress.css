@@ -1,0 +1,30 @@
+.review-progress-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.review-progress-filters select { flex: 0 1 150px; }
+.review-progress-filters input { flex: 1 1 160px; min-width: 0; }
+.review-progress-filters .review-progress-search { flex: 2 1 280px; }
+.review-progress-pagination { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; padding: 18px 0; font-size: 12.5px; color: var(--fg3); }
+.review-progress-workspace { display: grid; grid-template-columns: minmax(260px, .85fr) minmax(0, 1.65fr); border-top: 1px solid var(--line); }
+.review-progress-list { max-height: calc(100vh - 180px); overflow-y: auto; align-self: start; padding: 16px 20px 16px 0; }
+.review-progress-task { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 14px; width: 100%; background: var(--bg); color: var(--fg); border: 1px solid var(--line); margin: 0 0 10px; padding: 14px; text-align: left; cursor: pointer; font: inherit; font-size: 13px; }
+.review-progress-task:hover { background: var(--sub); }
+.review-progress-task[aria-pressed="true"] { border-color: var(--fg); background: var(--sub); box-shadow: inset 3px 0 var(--red); }
+.review-progress-task-copy { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.review-progress-task-title { font-weight: 500; line-height: 1.6; overflow-wrap: anywhere; }
+.review-progress-task-score { min-width: 72px; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; color: var(--fg3); font-size: 11px; white-space: nowrap; }
+.review-progress-task-score strong { color: var(--fg); font-size: 22px; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.review-progress-task-score small { margin-left: 3px; color: var(--fg2); font-size: 12px; font-weight: 500; }
+.review-progress-detail { min-width: 0; padding: 16px 0 28px 24px; border-left: 1px solid var(--line); }
+.review-progress-detail-nav { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding-bottom: 16px; }
+@media (max-width: 980px) {
+  .review-progress-workspace { grid-template-columns: minmax(0, 1fr); }
+  .review-progress-list { max-height: none; padding-right: 0; }
+  .review-progress-detail { padding-left: 0; border-left: 0; }
+  .review-progress-workspace[data-selected="true"] .review-progress-list { display: none; }
+  .review-progress-workspace[data-selected="false"] .review-progress-detail { display: none; }
+  .review-progress-filters select { flex: 1 1 140px; }
+  .review-progress-filters input { flex-basis: 140px; }
+  .review-progress-task { gap: 10px; }
+  .review-progress-task-score { min-width: 58px; }
+  .review-progress-task-score strong { font-size: 19px; }
+  .review-progress-detail button, .review-progress-filters button { min-height: 44px; }
+}

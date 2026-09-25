@@ -1,0 +1,59 @@
+/* 不再把共治页面夹在 1120px 里。外壳（Shell 的 [data-r='pad']）已经给了 44px
+   的左右留白，再套一层居中限宽，共治页比普通模式窄一百多像素、左边还多缩进一截——
+   同一个审核台在两种模式下宽度不一样，右栏被挤得只剩一条缝。宽度交给外壳统一管。 */
+.governance-page {
+  padding-bottom: 40px;
+}
+/* 仅保留页面编排；控件外观、表格与响应式布局由共享组件负责。 */
+.gov-list-toolbar {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+.gov-list-hint {
+  margin: 20px 0;
+  font-size: 12.5px;
+  color: var(--fg3);
+  line-height: 1.7;
+}
+.gov-section {
+  padding: 26px 0;
+  border-bottom: 1px solid var(--line);
+}
+.gov-proposal {
+  padding: 24px 0;
+  border-top: 1px solid var(--line2);
+}
+.gov-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 18px;
+}
+.gov-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 20px 0;
+}
+.gov-check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12.5px;
+  color: var(--fg2);
+}
+.gov-check input {
+  accent-color: var(--red);
+}
+.gov-discussion {
+  margin-top: 24px;
+}
+.gov-discussion summary {
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--fg2);
+}

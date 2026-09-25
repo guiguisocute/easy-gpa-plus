@@ -1,0 +1,118 @@
+# Pull requests and main both run the same build-quality gate.
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.scope.outputs.backend }}
+      frontend: ${{ steps.scope.outputs.frontend }}
+      deployment: ${{ steps.scope.outputs.deployment }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+      - name: Find the last successfully checked main commit
+        id: base
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT_NAME" = pull_request ]; then
+            echo "sha=$PR_BASE" >> "$GITHUB_OUTPUT"
+          else
+            base=$(gh run list --workflow ci.yml --branch main --status success --limit 1 --json headSha --jq '.[0].headSha // empty')
+            echo "sha=$base" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Select affected checks
+        id: scope
+        env:
+          BASE_SHA: ${{ steps.base.outputs.sha }}
+          HEAD_SHA: ${{ github.sha }}
+        run: node scripts/ci/changes.mjs
+      - run: node --test scripts/ci/changes.test.mjs
+
+  backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.26.6'
+          cache-dependency-path: backend/go.sum
+      - name: Check Go formatting
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "The following Go files need gofmt:" >&2
+            echo "$unformatted" >&2
+            exit 1
+          fi
+      - run: go build ./...
+      - run: go vet ./...
+      - run: go test ./...
+      - name: Check concurrent worker paths with the race detector
+        run: go test -race ./internal/events ./internal/aijob ./internal/agentjob ./internal/worker ./internal/notify ./internal/opsconfig
+
+  frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: node --test ../scripts/mcp-bridge.test.mjs
+      - run: npm run build
+      - run: npm run mock:build
+
+  deployment-config:
+    needs: changes
+    if: needs.changes.outputs.deployment == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - run: cp .env.example .env.development
+      - run: docker compose --env-file .env.development -f compose.dev.yaml config --quiet
+      - run: cp .env.example .env
+      - run: docker compose --profile full config --quiet
+      - name: Render independently published images
+        env:
+          BACKEND_IMAGE: ghcr.io/example/easy-gpa-plus-backend:ci
+          FRONTEND_IMAGE: ghcr.io/example/easy-gpa-plus-frontend:ci
+        run: docker compose -f compose.yaml -f compose.images.yaml --profile full config --quiet
+      - run: for script in deploy/development/*.sh deploy/postgres/*.sh deploy/nginx/*.sh; do sh -n "$script"; done
+
+  checks:
+    if: always()
+    needs: [changes, backend, frontend, deployment-config]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All affected checks must succeed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          node -e 'const jobs=JSON.parse(process.env.RESULTS); if(jobs.changes.result!=="success" || Object.values(jobs).some(j=>!["success","skipped"].includes(j.result))) process.exit(1)'

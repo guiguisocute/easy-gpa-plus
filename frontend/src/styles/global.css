@@ -1,0 +1,1192 @@
+/* 全局样式。令牌逐值取自 prototype/综测统计系统.dc.html 的 <style> 块。
+   原型用 style-hover="..." 表达悬停；React 里没有内联伪类，统一落到本文件末尾的 .hv-* 工具类。
+   原型用 @container shell 做响应式，这里保留同一套 [data-r] 钩子与断点，不改成媒体查询——
+   侧栏占 238px 时视口宽度会骗人，容器查询才是原型的真实语义。 */
+
+@import './fonts.css';
+
+:root {
+  color-scheme: light;
+  --bg: #ffffff;
+  --sub: #fafafa;
+  --line: #e3e3e3;
+  --line2: #efefef;
+  --fg: #0a0a0a;
+  --fg2: #575757;
+  --fg3: #8e8e8e;
+  --red: #d6001c;
+  --redsoft: rgba(214, 0, 28, 0.08);
+  --ok: #12a150;
+  --warn: #c88a00;
+  --okBg: rgba(18, 161, 80, 0.1);
+  --warnBg: rgba(200, 138, 0, 0.12);
+  --redBg: rgba(214, 0, 28, 0.09);
+  /* 压在实心强调色上的文字。浅色模式的红是深红（L*≈45），配白字；
+     深色模式的红是亮红（L*≈61），白字只有 3.08:1，得反过来配深字。 */
+  --onAccent: #ffffff;
+}
+/* 深色模式的明度轴。
+
+   原先钉死在两个极端：--bg 纯黑 L*=0、--fg 纯白 L*=100，正文对比 21:1。
+   瞳孔在暗环境本来就是放大的，21:1 打上去会晕开（halation），字看着发毛；
+   与此同时 --fg3 只有 3.66:1 不到 AA，--line 1.34:1 近乎看不见——
+   层次撑不起来，只能靠正文亮度硬扛，眼睛在刺眼和糊之间来回调节。
+
+   这一版没有改设计语言：各令牌相对底色的感知明度差（ΔL*）原样保留浅色模式那一套，
+   所以发丝线还是发丝线、弱化文字还是同样的弱化程度。改的只是整条轴的落点——
+   底色抬到 L*≈7.5，正文压到 L*≈91，正文对比落到 14.2:1。
+   唯一一处刻意偏离是 --fg3：照搬 ΔL* 只有 3.78:1，而它承载了满屏 12.5px 的说明文字，
+   抬到 4.6:1 过 AA；和 --fg2 之间仍留着 16.6 的 ΔL*，弱化层级没有塌。 */
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #171717;
+  --sub: #1a1a1a;
+  --line: #2b2b2b;
+  --line2: #222222;
+  --fg: #e5e5e5;
+  --fg2: #acacac;
+  --fg3: #818181;
+  --red: #ff5860;
+  --redsoft: rgba(255, 88, 96, 0.14);
+  --ok: #2fb568;
+  --warn: #d9a01e;
+  --okBg: rgba(47, 181, 104, 0.16);
+  --warnBg: rgba(217, 160, 30, 0.17);
+  --redBg: rgba(255, 88, 96, 0.16);
+  --onAccent: #171717;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+}
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: 'Instrument Sans', 'Noto Sans SC', system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--fg);
+}
+a {
+  color: var(--red);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--fg);
+}
+input,
+button,
+select,
+textarea {
+  font-family: inherit;
+}
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+}
+input[type='range'] {
+  accent-color: var(--red);
+}
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::placeholder {
+  color: var(--fg3);
+}
+
+/* 键盘可达性：原型是静态稿没有焦点态，这里补上。
+   只对 :focus-visible 生效，鼠标点击不会出现描边。 */
+:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes drawin {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes slidein {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes sheetup {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes menupop {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes toastin {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes lineSweep {
+  0% {
+    transform: translateX(-100%) scaleX(0.35);
+  }
+  50% {
+    transform: translateX(30%) scaleX(0.6);
+  }
+  100% {
+    transform: translateX(200%) scaleX(0.35);
+  }
+}
+@keyframes skelPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.42;
+  }
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+  transform-origin: 50% 50%;
+}
+.skel {
+  background: var(--line2);
+  animation: skelPulse 1.6s ease-in-out infinite;
+}
+
+/* ---- 全局知识 Agent：桌面右侧栏，窄屏底部面板 ---- */
+.agent-launcher {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 64;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid var(--fg);
+  border-radius: 999px;
+  background: var(--fg);
+  color: var(--bg);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2);
+  font: 600 12.5px/1 'Instrument Sans', 'Noto Sans SC', sans-serif;
+  cursor: pointer;
+}
+/* 右下角浮窗：没有遮罩、不锁滚动，开着也不挡用户干活；抓标题栏可以挪走。
+   以前是铺满右侧的模态抽屉，问一句话就得先把整个页面盖住。 */
+.agent-float {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 79;
+  width: min(430px, calc(100vw - 32px));
+  height: min(640px, calc(100dvh - 40px));
+  border: 1px solid var(--line);
+  background: var(--bg);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.24);
+  animation: agentFloatIn 0.18s ease both;
+}
+.agent-float .agent-head {
+  position: relative;
+  z-index: 3;
+  cursor: grab;
+  user-select: none;
+}
+.agent-float .agent-head > button { cursor: pointer; }
+.agent-resize {
+  position: absolute;
+  z-index: 2;
+  touch-action: none;
+}
+.agent-resize-n { top: 0; right: 12px; left: 12px; height: 6px; cursor: ns-resize; }
+.agent-resize-s { right: 12px; bottom: 0; left: 12px; height: 6px; cursor: ns-resize; }
+.agent-resize-e { top: 12px; right: 0; bottom: 12px; width: 6px; cursor: ew-resize; }
+.agent-resize-w { top: 12px; bottom: 12px; left: 0; width: 6px; cursor: ew-resize; }
+.agent-resize-ne { top: 0; right: 0; width: 14px; height: 14px; cursor: nesw-resize; }
+.agent-resize-nw { top: 0; left: 0; width: 14px; height: 14px; cursor: nwse-resize; }
+.agent-resize-sw { bottom: 0; left: 0; width: 14px; height: 14px; cursor: nesw-resize; }
+.agent-resize-se {
+  right: 0;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+}
+.agent-resize-se::after {
+  content: '';
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 8px;
+  height: 8px;
+  border-right: 1px solid var(--fg3);
+  border-bottom: 1px solid var(--fg3);
+}
+/* 三行：头部、会话条、聊天区。聊天区自己再切成消息流和输入框——
+   ThreadPrimitive.Root 把这两者包在一起，所以它们不能是 shell 的直接网格行。 */
+.agent-shell {
+  position: relative;
+  display: grid;
+  /* 唯一那列必须写死 minmax(0, 1fr)：隐式的 auto 列会按内容的 min-content 撑开，
+     一条长消息就能把整栏顶到 658px，内容整片画到面板外面去。原先是贴右边的抽屉，
+     溢出的部分正好落在屏幕外，看不出来；改成浮窗、往左一拖就全露出来了。 */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+.agent-thread {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+.agent-shell-embedded {
+  height: min(700px, calc(100dvh - 180px));
+  min-height: 520px;
+  border: 1px solid var(--line);
+}
+.agent-embedded-empty {
+  min-height: 420px;
+  padding: 30px;
+  border: 1px solid var(--line);
+}
+.agent-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 67px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.agent-head > div {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+}
+.agent-head strong {
+  overflow: hidden;
+  font-size: 13.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent-context {
+  overflow: hidden;
+  color: var(--fg3);
+  font-size: 10.5px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent-head > button,
+.agent-subdialog-head > button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--fg2);
+  cursor: pointer;
+}
+.agent-quota {
+  color: var(--fg3);
+  font: 400 10.5px/1 'JetBrains Mono', monospace;
+  white-space: nowrap;
+}
+/* 会话条。横向滚动而不是下拉浮层：面板只有一列宽，抽屉里再叠一层浮层
+   会挡住正在读的回答。 */
+.agent-threadlist {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 43px;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--line2);
+}
+.agent-toolbar-button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: transparent;
+  color: var(--fg2);
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.agent-threadlist-items {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.agent-threadlist-items::-webkit-scrollbar { display: none; }
+.agent-threadlist-row {
+  display: flex;
+  flex: none;
+  align-items: center;
+  max-width: 168px;
+  border: 1px solid var(--line2);
+}
+.agent-threadlist-row[data-active] {
+  border-color: var(--fg);
+  background: var(--sub);
+}
+.agent-threadlist-row button {
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  padding: 5px 8px;
+  color: var(--fg2);
+  font: inherit;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.agent-threadlist-row button:last-child {
+  flex: none;
+  padding: 5px 6px 5px 0;
+  color: var(--fg3);
+}
+.agent-threadlist-row[data-active] button:first-child { color: var(--fg); }
+.agent-messages {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px 15px 30px;
+  scrollbar-gutter: stable;
+}
+.agent-welcome {
+  display: flex;
+  min-height: 230px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  padding: 28px;
+  color: var(--fg3);
+  text-align: center;
+}
+.agent-welcome strong { color: var(--fg); font-size: 14px; }
+.agent-welcome span { max-width: 300px; font-size: 12.5px; line-height: 1.75; }
+.agent-message {
+  margin: 0 0 20px;
+  padding: 12px 13px;
+  border: 1px solid var(--line2);
+}
+.agent-message-user {
+  margin-left: 42px;
+  background: var(--sub);
+}
+.agent-message-attachment {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+  margin: 0 0 9px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  padding: 6px;
+  color: var(--fg);
+  text-decoration: none;
+}
+.agent-message-attachment > img,
+.agent-attachment-loading {
+  display: flex;
+  width: 78px;
+  height: 58px;
+  align-items: center;
+  justify-content: center;
+  object-fit: cover;
+  background: var(--sub);
+  color: var(--fg3);
+}
+.agent-message-attachment > span:last-child { min-width: 0; }
+.agent-message-attachment strong,
+.agent-message-attachment small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.agent-message-attachment strong { font-size: 11.5px; font-weight: 600; }
+.agent-message-attachment small { margin-top: 4px; color: var(--fg3); font-size: 10px; }
+a.agent-message-attachment:hover { border-color: var(--fg3); }
+.agent-message-assistant { margin-right: 12px; }
+.agent-message-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--fg3);
+  font: 500 10.5px/1 'JetBrains Mono', monospace;
+}
+/* 思维链与工具链路。整段靠左侧一条细线串起来，读起来是一条时间线而不是
+   几个互不相干的卡片；运行中把线换成主色，一眼能看出还在跑。 */
+.agent-cot { margin: 0 0 10px; }
+.agent-cot > button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: transparent;
+  padding: 2px 0;
+  color: var(--fg3);
+  font: inherit;
+  cursor: pointer;
+}
+.agent-cot.is-running > button { color: var(--warn); }
+.agent-cot > button svg { transition: transform 0.15s ease; }
+.agent-cot > button svg.is-open { transform: rotate(180deg); }
+/* 展开后整段挂在一条竖线上，读起来是一条时间线而不是几块并列的卡片。 */
+.agent-cot-body {
+  margin-top: 5px;
+  border-left: 1px solid var(--line);
+  padding: 1px 0 1px 11px;
+}
+.agent-cot.is-running .agent-cot-body { border-left-color: var(--warn); }
+/* 答案正文自己一层：过程记录、状态标记和它同在一条消息里，正文得能被单独定位。 */
+.agent-answer { min-width: 0; }
+.agent-reasoning {
+  margin: 3px 0;
+  color: var(--fg2);
+  font-size: 11.5px;
+  line-height: 1.7;
+}
+.agent-tool-row {
+  display: grid;
+  align-items: baseline;
+  grid-template-columns: 6px minmax(0, auto) minmax(0, 1fr);
+  gap: 7px;
+  padding: 3px 0;
+  font-size: 11.5px;
+}
+.agent-tool-dot {
+  width: 5px;
+  height: 5px;
+  align-self: center;
+  background: var(--ok);
+}
+.agent-tool-dot[data-state='running'] {
+  background: var(--warn);
+  animation: agentPulse 1.1s ease-in-out infinite;
+}
+.agent-tool-dot[data-state='error'] { background: var(--red); }
+.agent-tool-name { color: var(--fg); white-space: nowrap; }
+.agent-tool-summary {
+  overflow: hidden;
+  color: var(--fg3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent-tool-row.is-error .agent-tool-summary { color: var(--red); }
+.agent-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
+  color: var(--fg3);
+  font-size: 11.5px;
+}
+.agent-indicator svg { animation: agentSpin 1.1s linear infinite; }
+@keyframes agentPulse {
+  50% { opacity: 0.25; }
+}
+@keyframes agentSpin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agent-tool-dot[data-state='running'],
+  .agent-indicator svg { animation: none; }
+}
+/* 引用是一行灰字，不是卡片：正文才是要读的东西，出处只需要一眼扫过并且点得开。 */
+.agent-citations { display: flex; align-items: baseline; gap: 8px; margin-top: 9px; flex-wrap: wrap; }
+.agent-citations > span:first-child { color: var(--fg3); }
+.agent-citation {
+  max-width: 100%;
+  overflow: hidden;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--fg3);
+  font: inherit;
+  font-size: 11.5px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent-citation:not(.is-plain) { text-decoration: underline; text-decoration-color: var(--line2); text-underline-offset: 3px; cursor: pointer; }
+.agent-citation:not(.is-plain):hover { color: var(--fg); text-decoration-color: var(--fg3); }
+.agent-action-card { margin-top: 11px; border: 1px solid var(--warn); padding: 11px; }
+.agent-action-card > div:first-child { display: flex; align-items: center; justify-content: space-between; color: var(--warn); font-size: 10.5px; }
+.agent-action-card > strong { display: block; margin-top: 8px; font-size: 12.5px; }
+.agent-action-card > p { margin: 5px 0; color: var(--fg3); font-size: 11.5px; line-height: 1.65; }
+.agent-diff { display: grid; gap: 5px; margin: 10px 0; }
+.agent-diff > div { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 8px; padding-top: 5px; border-top: 1px solid var(--line2); }
+.agent-diff dt { color: var(--fg3); font-size: 10.5px; }
+.agent-diff dd { min-width: 0; margin: 0; color: var(--fg2); font-size: 10.5px; overflow-wrap: anywhere; }
+.agent-diff dd span { margin: 0 5px; color: var(--fg3); }
+.agent-diff code { font: 400 10.5px/1.5 'JetBrains Mono', monospace; }
+.agent-diff i { color: var(--fg3); font-style: normal; }
+.agent-action-buttons,
+.agent-confirm-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.agent-composer {
+  padding: 12px 13px;
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+}
+.agent-composer-shell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  padding: 8px 9px 7px;
+  transition: border-color .15s ease, background .15s ease;
+}
+.agent-composer-shell:focus-within { border-color: var(--fg); }
+.agent-composer-shell[data-dragging="true"] { border-style: dashed; border-color: var(--warn); background: var(--sub); }
+.agent-composer-attachment {
+  display: grid;
+  width: calc(50% - 4px);
+  min-width: 0;
+  grid-template-columns: 36px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--line2);
+  background: var(--sub);
+  padding: 5px;
+}
+.agent-composer-attachment > img,
+.agent-composer-attachment > span:first-child {
+  display: flex;
+  width: 36px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  object-fit: cover;
+  color: var(--fg3);
+}
+.agent-composer-attachment > span:not(:first-child) {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--fg2);
+  font-size: 10.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent-composer-attachment small { color: var(--fg3); font-size: 9px; }
+.agent-composer-attachment button {
+  display: flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--fg3);
+  cursor: pointer;
+}
+.agent-composer textarea {
+  display: block;
+  width: 100%;
+  min-height: 58px;
+  resize: none;
+  border: 0;
+  background: var(--bg);
+  padding: 3px 2px;
+  color: var(--fg);
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.55;
+  outline: none;
+}
+.agent-composer-actions { display: flex; width: 100%; min-width: 0; align-items: center; gap: 7px; }
+.agent-page-context { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; color: var(--fg3); font-size: 10.5px; line-height: 1.5; }
+.agent-page-context-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.agent-page-context-row > span { flex: 1; min-width: 0; color: var(--fg2); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.agent-page-context button, .agent-message-context button { border: 0; background: transparent; padding: 0; color: var(--fg3); cursor: pointer; font: inherit; }
+.agent-page-context-row > button { flex: none; }
+.agent-page-context summary { cursor: pointer; }
+.agent-page-context details > span, .agent-page-context details > button { display: block; text-align: left; margin-top: 5px; overflow-wrap: anywhere; }
+.agent-page-context details > .is-selected { color: var(--fg); }
+.agent-message-context { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px 10px; margin-bottom: 8px; font-size: 10.5px; line-height: 1.5; color: var(--fg3); overflow-wrap: anywhere; }
+.agent-source-image { display: block; max-width: 100%; height: auto; margin-bottom: 12px; }
+.agent-attach,
+.agent-send {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+}
+.agent-attach { background: transparent; padding: 6px 4px; color: var(--fg2); }
+.agent-attach-hint { min-width: 0; overflow: hidden; color: var(--fg3); font-size: 9.5px; text-overflow: ellipsis; white-space: nowrap; }
+.agent-send {
+  margin-left: auto;
+  background: var(--fg);
+  padding: 7px 9px;
+  color: var(--bg);
+}
+.agent-send:disabled { cursor: default; opacity: 0.35; }
+.agent-muted { display: block; padding: 8px; color: var(--fg3); font-size: 11.5px; line-height: 1.6; }
+.agent-subdialog {
+  position: absolute;
+  z-index: 8;
+  inset: 10px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.2);
+  padding: 15px;
+}
+.agent-subdialog-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.agent-subdialog-head > div { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 5px; }
+.agent-subdialog-head strong { font-size: 13.5px; overflow-wrap: anywhere; }
+.agent-subdialog-head span { color: var(--fg3); font-size: 10.5px; overflow-wrap: anywhere; }
+
+@keyframes agentSlideIn {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+/* 浮窗从入口按钮那个角落长出来，所以是往上抬而不是从右边推进来。 */
+@keyframes agentFloatIn {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ---- 班管知识库 ---- */
+.knowledge-upload-list { margin-top: 10px; border: 1px solid var(--line2); }
+.knowledge-upload-list > div {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(100px, 0.7fr) 120px 28px;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--line2);
+}
+.knowledge-upload-list > div:last-child { border-bottom: 0; }
+.knowledge-upload-list span:first-child { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.knowledge-upload-list strong,
+.knowledge-upload-list small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.knowledge-upload-list strong { font-size: 11.5px; }
+.knowledge-upload-list small { color: var(--fg3); font-size: 10.5px; }
+.knowledge-upload-list progress { width: 100%; height: 4px; border: 0; accent-color: var(--red); }
+.knowledge-upload-list button { display: grid; width: 26px; height: 26px; place-items: center; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--fg2); cursor: pointer; }
+.knowledge-table { width: 100%; min-width: 1040px; border-collapse: collapse; table-layout: fixed; }
+.knowledge-table th { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 10px 12px; color: var(--fg3); font-size: 10.5px; font-weight: 500; text-align: left; }
+.knowledge-table th:nth-child(1) { width: 28%; }
+.knowledge-table th:nth-child(2) { width: 15%; }
+.knowledge-table th:nth-child(3) { width: 15%; }
+.knowledge-table th:nth-child(4) { width: 14%; }
+.knowledge-table th:nth-child(5) { width: 11%; }
+.knowledge-table th:nth-child(6) { width: 17%; }
+.knowledge-table td { border-bottom: 1px solid var(--line2); padding: 13px 12px; color: var(--fg2); font-size: 11.5px; vertical-align: top; overflow-wrap: anywhere; }
+.knowledge-table td > strong,
+.knowledge-table td > span,
+.knowledge-table td > small { display: block; }
+.knowledge-table td > strong { margin-bottom: 4px; color: var(--fg); font-size: 12px; }
+.knowledge-table td > small { margin-top: 4px; color: var(--fg3); font-size: 10.5px; line-height: 1.5; }
+.knowledge-table td > small.is-error { color: var(--red); }
+.knowledge-table select { width: 100%; border: 1px solid var(--line); background: var(--bg); padding: 6px 7px; color: var(--fg2); font: inherit; font-size: 11.5px; }
+.knowledge-row-actions { display: flex; gap: 9px; flex-wrap: wrap; }
+.knowledge-preview-overlay { position: fixed; inset: 0; z-index: 82; display: flex; justify-content: flex-end; background: rgba(0, 0, 0, 0.32); backdrop-filter: blur(1.5px); }
+.knowledge-preview { width: min(760px, 100vw); height: 100dvh; overflow-y: auto; border-left: 1px solid var(--line); background: var(--bg); padding: 20px; box-shadow: -18px 0 54px rgba(0, 0, 0, 0.18); animation: agentSlideIn 0.22s ease both; }
+.knowledge-preview > header { display: flex; align-items: flex-start; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.knowledge-preview > header > div { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 5px; }
+.knowledge-preview > header strong { font-size: 16px; overflow-wrap: anywhere; }
+.knowledge-preview > header small { color: var(--fg3); font-size: 11px; overflow-wrap: anywhere; }
+.knowledge-preview > header button { display: grid; width: 32px; height: 32px; flex: none; place-items: center; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--fg2); cursor: pointer; }
+.knowledge-attachment { display: flex; align-items: center; gap: 12px; margin-top: 18px; border: 1px solid var(--line); background: var(--sub); padding: 14px; }
+.knowledge-attachment > svg { flex: none; color: var(--fg3); }
+.knowledge-attachment > div { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 4px; }
+.knowledge-attachment strong { overflow: hidden; font-size: 12.5px; text-overflow: ellipsis; white-space: nowrap; }
+.knowledge-attachment span { color: var(--fg3); font-size: 10.5px; }
+.knowledge-attachment a { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: 999px; padding: 7px 11px; color: var(--fg2); font-size: 11.5px; text-decoration: none; white-space: nowrap; }
+.knowledge-preview-meta { display: flex; align-items: center; gap: 10px; padding: 13px 0; color: var(--fg3); font-size: 11.5px; }
+.knowledge-entry-view { display: grid; grid-template-columns: 200px minmax(0, 1fr); min-height: 460px; border: 1px solid var(--line); }
+.knowledge-entry-view nav { overflow-y: auto; border-right: 1px solid var(--line); }
+.knowledge-entry-view nav button { display: flex; width: 100%; flex-direction: column; gap: 4px; border: 0; border-bottom: 1px solid var(--line2); background: transparent; padding: 10px; color: var(--fg2); text-align: left; cursor: pointer; }
+.knowledge-entry-view nav button.is-active { background: var(--fg); color: var(--bg); }
+.knowledge-entry-view nav span { font-size: 11.5px; font-weight: 600; }
+.knowledge-entry-view nav small { color: inherit; font-size: 10px; opacity: 0.72; }
+.knowledge-entry-view article { min-width: 0; padding: 14px; }
+.knowledge-entry-view article > div { display: flex; align-items: center; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid var(--line2); color: var(--fg3); font-size: 10.5px; }
+.knowledge-entry-view pre { margin: 12px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--fg2); font: 400 11.5px/1.75 'JetBrains Mono', 'Noto Sans SC', monospace; }
+
+/* ---- 运维班级详情 ---- */
+.ops-tenant-name { max-width: 100%; overflow: hidden; border: 0; background: transparent; padding: 0; color: var(--fg); font: inherit; font-weight: 600; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.ops-tenant-name:hover { color: var(--red); }
+.ops-tenant-overlay { position: fixed; inset: 0; z-index: 82; display: flex; justify-content: flex-end; background: rgba(0, 0, 0, 0.32); backdrop-filter: blur(1.5px); }
+.ops-tenant-panel { width: min(860px, 100vw); height: 100dvh; overflow-y: auto; border-left: 1px solid var(--line); background: var(--bg); padding: 22px; box-shadow: -18px 0 54px rgba(0, 0, 0, 0.18); animation: agentSlideIn 0.22s ease both; }
+.ops-tenant-panel > header { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.ops-tenant-panel > header > div { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 5px; }
+.ops-tenant-panel > header strong { overflow-wrap: anywhere; font-size: 17px; }
+.ops-tenant-panel > header small { color: var(--fg3); font-size: 11px; overflow-wrap: anywhere; }
+.ops-tenant-panel > header > button { border: 1px solid var(--line); background: transparent; padding: 7px 11px; color: var(--fg2); font: inherit; font-size: 11.5px; cursor: pointer; }
+.ops-tenant-tabs { display: flex; gap: 4px; padding: 18px 0 0; border-bottom: 1px solid var(--line); }
+.ops-tenant-tabs button { border: 0; border-bottom: 2px solid transparent; background: transparent; padding: 9px 13px 10px; color: var(--fg3); font: inherit; font-size: 12.5px; cursor: pointer; }
+.ops-tenant-tabs button.is-active { border-bottom-color: var(--fg); color: var(--fg); font-weight: 600; }
+.ops-tenant-section { padding: 20px 0; }
+.ops-tenant-members-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding-bottom: 14px; }
+.ops-tenant-members-head > div { display: flex; flex-direction: column; gap: 4px; }
+.ops-tenant-members-head strong { font-size: 13px; }
+.ops-tenant-members-head span { color: var(--fg3); font-size: 11.5px; }
+.ops-tenant-appoint { width: min(560px, 100%); }
+
+/* 顶部进度线：表示系统仍在请求，不表示百分比。禁止用转圈遮挡内容。 */
+.load-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 90;
+  overflow: hidden;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--red) 12%, transparent);
+}
+.load-bar > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: 0 50%;
+  background: var(--red);
+  animation: lineSweep 1.15s cubic-bezier(0.5, 0, 0.3, 1) infinite;
+}
+
+/* ---- 响应式：容器查询，断点与原型一致 ---- */
+[data-r='shell'] {
+  container-type: inline-size;
+  container-name: shell;
+}
+[data-r='scroll'] {
+  overflow-x: auto;
+  min-width: 0;
+  max-width: 100%;
+  overscroll-behavior-x: contain;
+}
+.table-scroll-hint { padding: 8px 0 12px; color: var(--fg2); font-size: 12px; }
+[data-r='split'] > *, [data-r='split3'] > *, [data-r='detgrid'] > * { min-width: 0; }
+
+/* 提交页与方案预览共用的方案树。桌面端只滚左栏，编辑区仍跟随页面滚动。 */
+[data-r='scheme-tree'] {
+  position: sticky;
+  top: 73px;
+  align-self: start;
+  max-height: calc(100dvh - 89px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+[data-r='scheme-tree-head'] {
+  position: sticky;
+  top: -22px;
+  z-index: 2;
+  background: var(--bg);
+  padding-top: 22px;
+}
+
+/* 吸顶元素一律贴在顶栏下沿。顶栏是 [data-r='top']：高 57px、border-box、
+   position:sticky top:0，所以它的下沿正好在 57px。这个值改了这里也要跟着改，
+   否则中间会空出一条缝，底下滚过去的内容从缝里漏出来。
+   （方案树的 73px 是另一回事：它自己的表头是不透明的二级吸顶，缝被盖住了。） */
+[data-r='auditnav'],
+[data-r='deskside'] {
+  position: sticky;
+  top: 57px;
+}
+
+/* 审核台的「当前对象」条（ReviewSubject 的 sticky 形态）。它贴着顶栏下沿，
+   高度固定 52px：同一栏里排在它下面的吸顶元素一律按 57+52=109 落位，
+   高度一旦改了，下面这条 auditnav 和 Desk.tsx 里那个 109 都要跟着改。 */
+[data-r='reviewsubject'] {
+  position: sticky;
+  top: 57px;
+  z-index: 4;
+  height: 52px;
+}
+
+/* 审核台的逐项导航条。一份表二十几项，「下一项」必须在原地够得着，
+   否则看完一条要滚到表底点下一条，再滚回来读——一份表来回几十趟。
+   它和当前对象条在同一栏里叠着，所以落在 109 而不是 57。
+   z-index 只要压住同列的表格；顶栏是 20，仍旧盖在它上面。 */
+[data-r='auditnav'] {
+  top: 109px;
+  z-index: 3;
+}
+
+/* 两个审核台的右栏。左边是佐证、规则表和材料清单，能长到好几屏；
+   右边是「现在要下的判断」，滚到哪都得看得见，否则每次拉回顶部才能落笔。
+
+   padding-right 是给滚动条让的道，不是留白：这一栏里 Row 的取值、Pill 全部靠右
+   （见 ui.tsx 的 Row），不让道的话它们的最后一两个字正好压在滚动条底下。
+   scrollbar-gutter: stable 挡不住这件事——遇上叠加式滚动条（Windows 11 的
+   Chrome 就是）它保留的宽度是 0，滚动条直接画在字上面，而且只有内容超过一屏
+   时才出现，所以是「有时候才糊」。让出来的道对两种滚动条都成立。
+   内联样式只写纵向 padding（paddingBlock），横向留给这里，五个台面才好一起改。 */
+[data-r='deskside'] {
+  max-height: calc(100dvh - 73px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding-right: 14px;
+}
+
+@container shell (max-width: 1060px) {
+  [data-r='splitfirst'] { padding-right: 0 !important; }
+  [data-r='split'],
+  [data-r='split3'] {
+    grid-template-columns: 1fr !important;
+  }
+  [data-r='splitcol'] {
+    border-left: none !important;
+    padding-left: 0 !important;
+    border-top: 1px solid var(--line);
+    padding-top: 24px !important;
+    margin-top: 24px !important;
+  }
+  [data-r='detgrid'] {
+    grid-template-columns: 1fr !important;
+  }
+  [data-r='detmain'] {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+  }
+  [data-r='detrail'] {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    position: static !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border-left: none !important;
+    border-bottom: 1px solid var(--line);
+  }
+  [data-r='scheme-tree'] {
+    position: static !important;
+    max-height: min(44dvh, 520px) !important;
+    overflow-y: auto !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--line);
+    padding-right: 8px !important;
+  }
+  [data-r='scheme-tree-head'] {
+    top: -22px;
+  }
+  /* 收成一栏之后右栏排到了左栏下面，再吸顶就成了一个跟着滚的窗口。
+     不滚了也就没有滚动条要让道，右边那 14px 收回去，两栏才对得齐。 */
+  [data-r='deskside'] {
+    position: static !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding-right: 0;
+  }
+  /* 逐项导航条仍旧吸顶，但窄屏的顶栏没了侧栏、依然是 57px，不必改偏移。 */
+}
+
+@container shell (max-width: 900px) {
+  [data-r='side'] {
+    display: none !important;
+  }
+  [data-r='burger'] {
+    display: flex !important;
+  }
+  [data-r='top'] {
+    padding: 0 16px !important;
+    gap: 10px !important;
+  }
+  [data-r='pad'] {
+    padding: 0 18px 96px !important;
+  }
+  [data-r='hidesm'] {
+    display: none !important;
+  }
+  /* 顶栏那枚按钮排在标题后面，窄屏再让浮层跟着它左对齐的话，348px 宽的面板会从
+     右边溢出去。改成钉住视口两侧：顶栏 57px 高，62 刚好落在它下沿再留一点缝。 */
+  [data-r='filterpop'] {
+    position: fixed !important;
+    top: 62px !important;
+    left: 16px !important;
+    right: 16px !important;
+    width: auto !important;
+  }
+  [data-r='split'],
+  [data-r='split3'] {
+    grid-template-columns: 1fr !important;
+  }
+  [data-r='scheme-gui'] {
+    grid-template-columns: 1fr !important;
+  }
+  [data-r='scheme-gui'] > nav {
+    max-height: 42dvh !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--line);
+  }
+  [data-r='enum-option'] {
+    grid-template-columns: 1fr !important;
+  }
+  [data-r='splitcol'] {
+    border-left: none !important;
+    padding-left: 0 !important;
+    border-top: 1px solid var(--line);
+    padding-top: 24px !important;
+    margin-top: 24px !important;
+  }
+  [data-r='stats'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 24px !important;
+  }
+  [data-r='hdr'] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  [data-r='hdrside'] {
+    margin-left: 0 !important;
+    align-items: flex-start !important;
+  }
+  [data-r='detpage'] {
+    left: 0 !important;
+  }
+  [data-r='detbody'] {
+    padding: 0 0 96px !important;
+  }
+}
+
+/* 开屏左栏的主题过渡：切换深浅色时背景、文案、描边一起淡过去，
+   不然粒子颜色在渐变、底下的背景却是瞬切，会看出两层脱节。
+   粒子那一侧的插值在 particle/ThemeAdapter.ts，时长与这里的 .42s 对齐。
+   只作用于左栏，不波及右侧表单——输入框的焦点反馈需要即时，不能被过渡拖慢。 */
+.emblem-fade,
+.emblem-fade * {
+  transition: background-color 0.42s ease, color 0.42s ease, border-color 0.42s ease;
+}
+
+/* 减少动效偏好：位置与布局不变，只停动画。
+   带 both/forwards 的入场动画直接 animation:none 会停在 opacity:0，必须显式恢复。 */
+@media (prefers-reduced-motion: reduce) {
+  .load-bar > span,
+  .skel,
+  .spin {
+    animation: none;
+  }
+  [style*='animation'] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .agent-launcher {
+    right: 16px;
+    bottom: 16px;
+    min-height: 44px;
+  }
+  /* 窄屏放不下浮窗，退回贴底抽屉；这里也不拖动，见 useDragPanel 的同一个断点。 */
+  .agent-float {
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: min(92dvh, 820px);
+    border: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 18px 18px 0 0;
+    animation-name: agentSheetIn;
+  }
+  .agent-float .agent-head { cursor: default; }
+  .agent-resize { display: none; }
+  .agent-shell-embedded {
+    height: min(720px, calc(100dvh - 128px));
+    min-height: 520px;
+  }
+  .agent-message-user { margin-left: 24px; }
+  .agent-message-assistant { margin-right: 0; }
+  .knowledge-upload-list > div { grid-template-columns: minmax(0, 1fr) 78px 44px; }
+  .knowledge-upload-list progress { grid-column: 1 / 3; grid-row: 2; }
+  .knowledge-upload-list > div > span:nth-of-type(2) { text-align: right; }
+  .knowledge-preview { width: 100%; height: 94dvh; align-self: flex-end; border-top: 1px solid var(--line); border-left: 0; padding: 16px; }
+  .knowledge-attachment { align-items: flex-start; flex-wrap: wrap; }
+  .knowledge-attachment > div { min-width: calc(100% - 40px); }
+  .knowledge-entry-view { grid-template-columns: 1fr; }
+  .knowledge-entry-view nav { display: flex; max-width: 100%; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+  .knowledge-entry-view nav button { width: 150px; flex: none; border-right: 1px solid var(--line2); border-bottom: 0; }
+  [data-r='platform-knowledge-meta'] { grid-template-columns: 1fr !important; }
+  .ops-tenant-panel { width: 100%; height: 94dvh; align-self: flex-end; border-top: 1px solid var(--line); border-left: 0; padding: 16px; }
+  .ops-tenant-panel > header { align-items: flex-start; flex-wrap: wrap; }
+  .ops-tenant-members-head { align-items: stretch; flex-direction: column; }
+  .ops-tenant-members-head input { width: 100% !important; }
+}
+
+/* Portal 浮层挂在 body 下，没有 shell 容器；同样需要小屏分栏规则。 */
+@media (max-width: 900px) {
+  [data-r='split'], [data-r='split3'], [data-r='detgrid'], [data-r='enum-option'] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  [data-r='splitfirst'] { padding-right: 0 !important; }
+  [data-r='splitcol'] {
+    border-left: 0 !important;
+    padding-left: 0 !important;
+    border-top: 1px solid var(--line);
+    padding-top: 24px !important;
+    margin-top: 24px !important;
+  }
+}
+
+/* 手机保留表格对照关系，表单和操作区则按可用宽度排版。 */
+@media (max-width: 600px) {
+  html { scroll-padding-top: 72px; }
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), select, textarea {
+    min-width: 0;
+    max-width: 100%;
+    min-height: 44px;
+    font-size: 16px !important;
+  }
+  input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--red);
+    outline-offset: 2px;
+  }
+  [data-ui='button'], [data-ui='text-button'], [data-ui='seg'] > button,
+  [data-ui='line-tabs'] > button, .auth-form-pane button {
+    min-height: 44px;
+  }
+  [data-ui='button'] { max-width: 100%; white-space: normal !important; }
+  [data-ui='text-button'] { min-width: 44px; }
+  [data-ui='icon-button'] { width: 44px !important; height: 44px !important; }
+  /* 开关外观保持原尺寸，扩大上下触摸区。 */
+  [data-ui='toggle'] { position: relative; margin-block: 9px !important; }
+  [data-ui='toggle']::before { content: ''; position: absolute; inset: -9px 0; }
+  [data-ui='seg'] { max-width: 100%; border-radius: 20px !important; }
+  [data-ui='line-tabs'] {
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+  [data-ui='line-tabs'] > * { flex: none; }
+  [data-ui='line-tabs'] > button { white-space: nowrap; margin-right: 12px !important; padding: 10px 4px !important; }
+  [data-ui='value-row'] > :first-child { flex: 0 1 45% !important; min-width: 0; overflow-wrap: anywhere; }
+  [data-ui='value-row'] > :last-child { flex: 1; }
+  [data-r='hdr'] { padding: 26px 0 22px !important; gap: 16px !important; }
+  [data-r='hdrside'] { width: 100%; min-width: 0; }
+  [data-r='hdrside'] > * { max-width: 100%; }
+  [data-r='stats'] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 22px 16px !important; }
+  [data-r='stats'] > * { padding-right: 0 !important; }
+  [data-r='stats'] > * > div { flex-wrap: wrap; }
+  [data-ui='stat-value'][data-long] { font-size: 20px !important; letter-spacing: -.02em !important; }
+  .auth-form-mobile {
+    padding: calc(96px + env(safe-area-inset-top)) 24px calc(32px + env(safe-area-inset-bottom)) !important;
+  }
+  .auth-form-mobile .auth-theme { top: calc(20px + env(safe-area-inset-top)) !important; }
+  [data-ui='auth-back'] { top: calc(20px + env(safe-area-inset-top)) !important; }
+  [data-ui='password-toggle'] { width: 44px; height: 44px; bottom: 0 !important; justify-content: center; }
+  .auth-brand-mobile { padding: calc(32px + env(safe-area-inset-top)) 24px calc(32px + env(safe-area-inset-bottom)) !important; gap: 36px; }
+  .app-toast { bottom: calc(18px + env(safe-area-inset-bottom)) !important; width: max-content; pointer-events: none; }
+  .agent-launcher { bottom: calc(16px + env(safe-area-inset-bottom)); }
+  .agent-float, .knowledge-preview, .ops-tenant-panel { padding-bottom: env(safe-area-inset-bottom); }
+  .knowledge-preview > header button, .knowledge-upload-list button, .agent-icon-btn { min-width: 44px; min-height: 44px; }
+}
+
+@media (max-width: 360px) {
+  [data-r='stats'] { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+@keyframes agentSheetIn {
+  from { transform: translateY(28px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ---- style-hover 工具类（等价于原型的 style-hover 属性） ---- */
+.hv-fg:hover {
+  color: var(--fg) !important;
+}
+.hv-red:hover {
+  color: var(--red) !important;
+}
+.hv-line-fg:hover {
+  border-color: var(--fg) !important;
+  color: var(--fg) !important;
+}
+.hv-line-red:hover {
+  border-color: var(--red) !important;
+  color: var(--red) !important;
+}
+.hv-op82:hover {
+  opacity: 0.82 !important;
+}
+.hv-op72:hover {
+  opacity: 0.72 !important;
+}
+.hv-sub:hover {
+  background: var(--sub) !important;
+}
+.hv-bfg:focus,
+.hv-bfg:focus-visible {
+  border-bottom-color: var(--fg) !important;
+}

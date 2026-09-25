@@ -1,0 +1,16 @@
+# dev.ps1 adds this overlay only for one-off commands. Long-running services
+# retain their init process and health checks. On Docker Desktop an exited
+# one-off wrapped in init can remain reported as running and block the CLI.
+services:
+  api:
+    init: false
+    healthcheck:
+      disable: true
+  workers:
+    init: false
+    healthcheck:
+      disable: true
+  frontend:
+    init: false
+    healthcheck:
+      disable: true

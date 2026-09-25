@@ -1,0 +1,259 @@
+# Standalone deployment: cp .env.example .env && docker compose --profile full up -d --build
+name: easygpa-plus
+
+x-logging: &default-logging
+  # json-file 默认无上限。单个容器日志曾涨到 93.4 GB 占满宿主磁盘,
+  # 这里统一封顶 50m x 3 = 最多 150 MB/容器。
+  driver: json-file
+  options:
+    max-size: "50m"
+    max-file: "3"
+
+x-backend-build: &backend-build
+  context: .
+  dockerfile: backend/Dockerfile
+
+x-backend-environment: &backend-environment
+  DATABASE_URL: postgres://easygpa_app:${PG_APP_PASSWORD:-easygpa-app-dev}@postgres:5432/${PG_DB:-easygpa}?sslmode=disable
+  MIGRATIONS_DATABASE_URL: postgres://${PG_USER:-easygpa}:${PG_PASSWORD:-easygpa-dev}@postgres:5432/${PG_DB:-easygpa}?sslmode=disable
+  OPS_DATABASE_URL: postgres://easygpa_ops:${PG_OPS_PASSWORD:-easygpa-ops-dev}@postgres:5432/${PG_DB:-easygpa}?sslmode=disable
+  REDIS_ADDR: redis:6379
+  S3_ENDPOINT: garage:3900
+  S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-localhost:3900}
+  TENCENTCLOUD_SES_REGION: ${TENCENTCLOUD_SES_REGION:-ap-guangzhou}
+  MAIL_TEMPLATE_DIR: /app/mailtemplate
+  BACKUP_DIR: /backups/local
+  # APP_ENV=prod 要求两个目录都存在且不同；离机目录的来源见 BACKUP_OFFSITE_VOLUME。
+  BACKUP_OFFSITE_DIR: /backups/offsite
+
+services:
+  postgres:
+    logging: *default-logging
+    image: postgres:17.10-alpine
+    environment:
+      POSTGRES_USER: ${PG_USER:-easygpa}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-easygpa-dev}
+      POSTGRES_DB: ${PG_DB:-easygpa}
+      POSTGRES_APP_PASSWORD: ${PG_APP_PASSWORD:-easygpa-app-dev}
+      POSTGRES_OPS_PASSWORD: ${PG_OPS_PASSWORD:-easygpa-ops-dev}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./deploy/postgres/init-roles.sh:/docker-entrypoint-initdb.d/010-easygpa-roles.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-easygpa} -d ${PG_DB:-easygpa}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    logging: *default-logging
+    image: redis:8.8-alpine
+    # AOF 持久化保 Stream 不丢(§11.3)
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec", "--maxmemory", "160mb", "--maxmemory-policy", "noeviction"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  garage:
+    logging: *default-logging
+    # S3 兼容对象存储(§20.3:全量替代已停更的 MinIO 社区版)
+    # --single-node 自动完成布局,--default-bucket 按下面三个环境变量建桶建密钥
+    image: dxflrs/garage:v2.3.0
+    command: ["/garage", "server", "--single-node", "--default-bucket"]
+    environment:
+      GARAGE_DEFAULT_ACCESS_KEY: ${S3_ACCESS_KEY:-GK0000dead0000beef0000cafe}
+      GARAGE_DEFAULT_SECRET_KEY: ${S3_SECRET_KEY:-deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef}
+      GARAGE_DEFAULT_BUCKET: ${S3_BUCKET:-easygpa}
+    ports:
+      - "127.0.0.1:3900:3900" # S3 API
+      - "127.0.0.1:3903:3903" # admin API(健康检查/指标)
+    volumes:
+      - ./deploy/garage/garage.toml:/etc/garage.toml:ro
+      - garagemeta:/var/lib/garage/meta
+      - garagedata:/var/lib/garage/data
+    healthcheck:
+      test: ["CMD", "/garage", "status"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # 后端也可整体容器化运行(可选): docker compose --profile full up -d
+  migrate:
+    logging: *default-logging
+    # The standalone AI Worker still needs the same schema gate even when the
+    # rest of the backend is already running outside Compose.
+    profiles: ["full", "ai"]
+    image: easygpa-plus-backend:local
+    build: *backend-build
+    command: ["migrate"]
+    env_file: .env
+    environment: *backend-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    logging: *default-logging
+    profiles: ["full"]
+    image: easygpa-plus-backend:local
+    build: *backend-build
+    command: ["api"]
+    env_file: .env
+    environment: *backend-environment
+    volumes:
+      - backupdata:/backups/local
+      - ${BACKUP_OFFSITE_VOLUME:-backupoffsite}:/backups/offsite
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      garage:
+        condition: service_healthy
+
+  worker-dispatch:
+    logging: *default-logging
+    profiles: ["full"]
+    image: easygpa-plus-backend:local
+    build: *backend-build
+    command: ["worker:dispatch"]
+    env_file: .env
+    environment: *backend-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  worker-notify:
+    logging: *default-logging
+    profiles: ["full"]
+    image: easygpa-plus-backend:local
+    build: *backend-build
+    command: ["worker:notify"]
+    env_file: .env
+    environment: *backend-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  worker-export:
+    logging: *default-logging
+    profiles: ["full"]
+    image: easygpa-plus-backend:local
+    build: *backend-build
+    command: ["worker:export"]
+    env_file: .env
+    environment: *backend-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      garage:
+        condition: service_healthy
+
+  worker-ai:
+    logging: *default-logging
+    # 常驻但空闲：真正的调用闸门在 ops_config.flags.aiEnabled。
+    # 这样运维页开关可以即时生效，不需要再手动启动容器。
+    profiles: ["full", "ai"]
+    image: easygpa-plus-backend:local
+    build: *backend-build
+    command: ["worker:ai"]
+    env_file: .env
+    environment: *backend-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      garage:
+        condition: service_healthy
+
+  worker-agent:
+    logging: *default-logging
+    # 文件转换与对话共用独立消费组；关闭知识开关时仍可完成不外发的纯文本转换。
+    profiles: ["full", "ai"]
+    image: easygpa-plus-backend:local
+    build: *backend-build
+    command: ["worker:agent"]
+    env_file: .env
+    environment: *backend-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      garage:
+        condition: service_healthy
+
+  worker-maintenance:
+    logging: *default-logging
+    profiles: ["full"]
+    image: easygpa-plus-backend:local
+    build: *backend-build
+    command: ["worker:maintenance"]
+    env_file: .env
+    environment: *backend-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      garage:
+        condition: service_healthy
+
+  worker-backup:
+    logging: *default-logging
+    profiles: ["full"]
+    image: easygpa-plus-backend:local
+    build: *backend-build
+    command: ["worker:backup"]
+    env_file: .env
+    environment: *backend-environment
+    volumes:
+      - backupdata:/backups/local
+      - ${BACKUP_OFFSITE_VOLUME:-backupoffsite}:/backups/offsite
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      garage:
+        condition: service_healthy
+
+  frontend:
+    logging: *default-logging
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-3080}:8080"
+    volumes:
+      - frontend-assets:/var/cache/easygpa/assets
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  frontend-assets:
+  pgdata:
+  redisdata:
+  garagemeta:
+  garagedata:
+  backupdata:
+  backupoffsite:

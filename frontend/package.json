@@ -1,0 +1,45 @@
+{
+  "name": "easygpa-plus",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && node ../scripts/package-demo-source.mjs --full",
+    "typecheck": "tsc -b",
+    "test": "node --test \"src/**/*.test.ts\" && npm run test:mock",
+    "test:e2e": "node ../e2e/run.mjs playwright",
+    "test:e2e:ui": "node ../e2e/run.mjs playwright --ui",
+    "lint": "oxlint && npm run lint:copy",
+    "lint:copy": "node scripts/check-ui-copy.mjs",
+    "preview": "vite preview",
+    "mock": "vite --config ../mock/vite.config.ts --host 0.0.0.0 --port 4173",
+    "mock:build": "npm run typecheck:mock && vite build --config ../mock/vite.config.ts && node ../scripts/package-demo-source.mjs",
+    "typecheck:mock": "tsc --noEmit -p tsconfig.mock.json",
+    "mock:deploy": "npm run mock:build && node ../scripts/deploy-mock.mjs",
+    "test:mock": "node --test ../e2e/mock-governance.test.mjs"
+  },
+  "dependencies": {
+    "@assistant-ui/react": "^0.15.13",
+    "@tanstack/react-query": "^5.101.4",
+    "lucide-react": "^1.29.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-hook-form": "^7.84.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "oxlint": "^1.71.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1"
+  },
+  "license": "AGPL-3.0-only"
+}

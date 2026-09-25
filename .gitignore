@@ -1,0 +1,31 @@
+# ── 敏感/真实数据:永不入库 ─────────────────────
+templet_raw/
+_dump/
+*.xlsx
+!backend/internal/exportjob/templates/*.xlsx
+*.pdf
+.env
+.env.*
+!.env.example
+
+# ── 构建产物与依赖 ─────────────────────────────
+backend/bin/
+backend/tmp/
+.ai-eval/
+.release/
+.wrangler/
+frontend/node_modules/
+frontend/dist/
+mock/node_modules/
+mock/dist/
+mock/.vite/
+
+# ── 工具与系统 ─────────────────────────────────
+.spec-workflow/
+.playwright-cli/
+output/
+.DS_Store
+Thumbs.db
+*.log
+
+backend/tmp-*.exe

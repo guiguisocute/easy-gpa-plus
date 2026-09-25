@@ -1,0 +1,233 @@
+name: easygpa-plus-e2e
+
+# Disposable, local-only E2E overlay. It reuses the development images and hot
+# reload topology, but owns a separate Compose project, loopback ports, size-capped
+# tmpfs business state, synthetic credentials, and a fake OpenAI-compatible service.
+# No production Compose file, database, object bucket, mail worker, or model
+# provider is reachable from this stack.
+
+x-logging: &default-logging
+  # json-file 默认无上限。单个容器日志曾涨到 93.4 GB 占满宿主磁盘,
+  # 这里统一封顶 50m x 3 = 最多 150 MB/容器。
+  driver: json-file
+  options:
+    max-size: "50m"
+    max-file: "3"
+
+x-e2e-backend-environment: &e2e-backend-environment
+  APP_ENV: dev
+  HTTP_ADDR: :8080
+  PUBLIC_URL: http://127.0.0.1:${E2E_FRONTEND_PORT:-45173}
+  COOKIE_SECURE: "false"
+  TRUSTED_PROXIES: ""
+  API_RATE_LIMIT_PER_MINUTE: 180
+  API_RATE_LIMIT_BURST: 60
+  E2E_TEST_TOKEN: easygpa-local-e2e-rate-limit-bypass-v1
+  JWT_SECRET: easygpa-e2e-jwt-secret-is-local-only
+  # Stateful suites deliberately exercise long workflows without relying on a
+  # refresh-cookie jar for every synthetic identity.
+  ACCESS_TOKEN_TTL: 2h
+  REFRESH_TOKEN_TTL: 24h
+  OPS_ACCOUNT: ops@e2e.local
+  OPS_PASSWORD: easygpa-e2e-ops-password
+  DATABASE_URL: postgres://easygpa_app:easygpa-app-e2e@postgres:5432/easygpa_e2e?sslmode=disable
+  MIGRATIONS_DATABASE_URL: postgres://easygpa:easygpa-e2e@postgres:5432/easygpa_e2e?sslmode=disable
+  OPS_DATABASE_URL: postgres://easygpa_ops:easygpa-ops-e2e@postgres:5432/easygpa_e2e?sslmode=disable
+  REDIS_ADDR: redis:6379
+  REDIS_PASSWORD: ""
+  S3_ENDPOINT: garage:3900
+  S3_PUBLIC_ENDPOINT: 127.0.0.1:${E2E_S3_PORT:-43900}
+  S3_REGION: garage
+  S3_ACCESS_KEY: GK0000dead0000beef0000cafe
+  S3_SECRET_KEY: deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef
+  S3_BUCKET: easygpa-e2e
+  S3_USE_SSL: "false"
+  S3_PUBLIC_USE_SSL: "false"
+  TENCENTCLOUD_SECRET_ID: ""
+  TENCENTCLOUD_SECRET_KEY: ""
+  TENCENTCLOUD_SES_FROM: ""
+  TENCENTCLOUD_SES_REPLY_TO: ""
+  TENCENTCLOUD_SES_TEMPLATE_IDS: "{}"
+  MAIL_SECRET_KEY: 0123456789abcdef0123456789abcdef
+  AI_ENABLED: "false"
+  AI_ALLOW_PRIVATE_NETWORK: "true"
+  AI_CONFIG_SECRET_KEY: 0123456789abcdef0123456789abcdef
+  LLM_BASE_URL: http://127.0.0.1:18082/v1
+  LLM_API_KEY: ""
+  BACKUP_OFFSITE_DIR: ""
+
+services:
+  go-test:
+    extends:
+      file: compose.dev.yaml
+      service: api
+    profiles: ["test"]
+    env_file: !override []
+    environment: !override
+      # Do not inherit application settings such as E2E_TEST_TOKEN: config
+      # tests exercise production validation in their own synthetic env.
+      # The disposable database is loopback inside this network namespace.
+      # This also satisfies the database regression's loopback-only guard.
+      EASYGPA_TEST_DATABASE_URL: postgres://easygpa_app:easygpa-app-e2e@127.0.0.1:5432/easygpa_e2e?sslmode=disable
+      EASYGPA_TEST_ADMIN_DATABASE_URL: postgres://easygpa:easygpa-e2e@127.0.0.1:5432/easygpa_e2e?sslmode=disable
+      EASYGPA_TEST_REDIS_ADDR: redis:6379
+      TEST_REDIS_ADDR: redis:6379
+      TEST_REDIS_PASSWORD: ""
+      EASYGPA_INTEGRATION: "1"
+      S3_ENDPOINT: garage:3900
+      S3_BUCKET: easygpa-e2e
+      S3_REGION: garage
+      S3_USE_SSL: "false"
+      S3_ACCESS_KEY: GK0000dead0000beef0000cafe
+      S3_SECRET_KEY: deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef
+      REMOTE_ENDPOINT: 127.0.0.1:3900
+      REMOTE_BUCKET: easygpa-e2e
+      REMOTE_REGION: garage
+      REMOTE_USE_SSL: "false"
+      REMOTE_ACCESS_KEY: GK0000dead0000beef0000cafe
+      REMOTE_SECRET_KEY: deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef
+      REMOTE_PATH_STYLE: "true"
+    network_mode: "service:postgres"
+    ports: !override []
+    depends_on: !override {}
+    restart: "no"
+    healthcheck:
+      disable: true
+    init: false
+    mem_limit: 4g
+    cpus: 4.0
+    pids_limit: 512
+    entrypoint: ["sh", "/workspace/deploy/development/test-backend.sh"]
+    command: ["test", "-json", "-count=1", "-timeout", "12m", "./..."]
+
+  postgres:
+    logging: *default-logging
+    restart: "no"
+    environment:
+      POSTGRES_USER: easygpa
+      POSTGRES_PASSWORD: easygpa-e2e
+      POSTGRES_DB: easygpa_e2e
+      POSTGRES_APP_PASSWORD: easygpa-app-e2e
+      POSTGRES_OPS_PASSWORD: easygpa-ops-e2e
+    ports: !override
+      - "127.0.0.1:${E2E_POSTGRES_PORT:-45432}:5432"
+    volumes: !override
+      - ./deploy/postgres/init-roles.sh:/docker-entrypoint-initdb.d/010-easygpa-roles.sh:ro
+    tmpfs:
+      # size is bytes; 1 GiB keeps a full E2E schema without unbounded RAM.
+      - /var/lib/postgresql/data:size=1073741824
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U easygpa -d easygpa_e2e"]
+
+  redis:
+    logging: *default-logging
+    restart: "no"
+    ports: !override
+      - "127.0.0.1:${E2E_REDIS_PORT:-46379}:6379"
+    volumes: !override []
+    tmpfs:
+      - /data:size=268435456
+
+  garage:
+    logging: *default-logging
+    restart: "no"
+    environment:
+      GARAGE_DEFAULT_ACCESS_KEY: GK0000dead0000beef0000cafe
+      GARAGE_DEFAULT_SECRET_KEY: deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef
+      GARAGE_DEFAULT_BUCKET: easygpa-e2e
+    ports: !override
+      - "127.0.0.1:${E2E_S3_PORT:-43900}:3900"
+      - "127.0.0.1:${E2E_GARAGE_ADMIN_PORT:-43903}:3903"
+    volumes: !override
+      - ./deploy/garage/garage.toml:/etc/garage.toml:ro
+    tmpfs:
+      - /var/lib/garage/meta:size=268435456
+      - /var/lib/garage/data:size=536870912
+
+  migrate:
+    logging: *default-logging
+    env_file: !override []
+    environment: *e2e-backend-environment
+    # Docker Desktop 29 can leave a completed one-shot container in a
+    # zero-PID "running" state when Compose injects tini. Migrations execute a
+    # single foreground command and do not need an init process.
+    init: false
+    # Build one immutable test binary, then use that exact binary for
+    # migrations, API, and workers. Besides halving startup compilation this
+    # prevents a source save from giving those processes different revisions.
+    command: ["sh", "-c", "sh /workspace/deploy/development/build-backend.sh && exec /dev-bin/zongce migrate"]
+
+  api:
+    logging: *default-logging
+    restart: "no"
+    env_file: !override []
+    environment: *e2e-backend-environment
+    # The ordinary dev stack keeps Air hot reload; E2E deliberately runs the
+    # binary produced by migrate so a source save cannot restart a long flow.
+    command: ["/dev-bin/zongce", "api"]
+    depends_on: !override
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      garage:
+        condition: service_healthy
+    ports: !override
+      - "127.0.0.1:${E2E_API_PORT:-48080}:8080"
+      # fake-openai shares this service's network namespace. Publishing its
+      # port here keeps the API-facing URL a genuine loopback endpoint.
+      - "127.0.0.1:${E2E_FAKE_OPENAI_PORT:-48082}:18082"
+
+  workers:
+    logging: *default-logging
+    restart: "no"
+    env_file: !override []
+    environment:
+      <<: *e2e-backend-environment
+      # Notifications are deliberately absent. Repeatable E2E also never calls
+      # API endpoints that synchronously send mail (for example POST /me/emails).
+      EASYGPA_DEV_WORKERS: dispatch export maintenance ai agent
+    # The runtime model binding is intentionally http://127.0.0.1:18082 so it
+    # passes the same loopback-only security rule as local development. Workers
+    # therefore share the API/fake-provider network namespace too.
+    network_mode: "service:api"
+    depends_on: !override
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      garage:
+        condition: service_healthy
+      fake-openai:
+        condition: service_healthy
+
+  frontend:
+    logging: *default-logging
+    restart: "no"
+    environment:
+      VITE_API_PROXY: http://api:8080
+      VITE_AI_ENABLED: "true"
+    ports: !override
+      - "127.0.0.1:${E2E_FRONTEND_PORT:-45173}:5173"
+
+  fake-openai:
+    logging: *default-logging
+    image: node:24-alpine
+    restart: "no"
+    working_dir: /workspace
+    init: true
+    command: ["node", "e2e/fake-openai.mjs"]
+    environment:
+      FAKE_OPENAI_HOST: 0.0.0.0
+      FAKE_OPENAI_PORT: 18082
+    network_mode: "service:api"
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+        read_only: true
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:18082/health"]
+      interval: 2s
+      timeout: 3s
+      retries: 30

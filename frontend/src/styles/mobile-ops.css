@@ -1,0 +1,114 @@
+/* 运维表单按可用宽度收拢，路由配置在窄屏逐项填写。 */
+.ops-model-routing {
+  container: ops-routing / inline-size;
+  min-width: 0;
+}
+
+.ops-provider-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  gap: 13px 18px;
+}
+
+.ops-parameter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  min-width: 0;
+}
+
+.ops-route-editor {
+  display: grid;
+  grid-template-columns: minmax(150px, .9fr) minmax(180px, 1.1fr) minmax(170px, 1fr) minmax(170px, .8fr) minmax(180px, auto);
+  gap: 14px;
+  align-items: center;
+  border-bottom: 1px solid var(--line2);
+  padding: 18px 0;
+}
+
+.ops-route-editor > * {
+  min-width: 0;
+}
+
+.ops-route-actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.ops-auto-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 12px 18px;
+}
+
+.ops-auto-form-grid > label,
+.ops-limit-grid > label {
+  min-width: 0;
+}
+
+.ops-limit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 18px;
+}
+
+.ops-mail-template {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px;
+  gap: 10px;
+  align-items: center;
+  border-top: 1px solid var(--line2);
+  padding: 9px 0;
+}
+
+.ops-mail-template > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@container ops-routing (max-width: 1040px) {
+  .ops-route-editor {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 16px 18px;
+  }
+
+  .ops-route-title {
+    grid-column: 1 / -1;
+  }
+
+  .ops-route-actions {
+    align-self: end;
+  }
+}
+
+@container ops-routing (max-width: 600px) {
+  .ops-provider-grid,
+  .ops-route-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ops-route-actions {
+    justify-content: flex-start;
+  }
+}
+
+@container shell (max-width: 1060px) {
+  .ops-inset-panel {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .ops-limit-grid,
+  .ops-mail-template {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ops-mail-template input {
+    text-align: left !important;
+  }
+}

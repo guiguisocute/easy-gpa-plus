@@ -1,0 +1,31 @@
+services:
+  migrate:
+    build: !reset null
+    image: ${BACKEND_IMAGE:?Set BACKEND_IMAGE to a published immutable image}
+  api:
+    build: !reset null
+    image: ${BACKEND_IMAGE:?Set BACKEND_IMAGE to a published immutable image}
+  worker-dispatch:
+    build: !reset null
+    image: ${BACKEND_IMAGE:?Set BACKEND_IMAGE to a published immutable image}
+  worker-notify:
+    build: !reset null
+    image: ${BACKEND_IMAGE:?Set BACKEND_IMAGE to a published immutable image}
+  worker-export:
+    build: !reset null
+    image: ${BACKEND_IMAGE:?Set BACKEND_IMAGE to a published immutable image}
+  worker-ai:
+    build: !reset null
+    image: ${BACKEND_IMAGE:?Set BACKEND_IMAGE to a published immutable image}
+  worker-agent:
+    build: !reset null
+    image: ${BACKEND_IMAGE:?Set BACKEND_IMAGE to a published immutable image}
+  worker-maintenance:
+    build: !reset null
+    image: ${BACKEND_IMAGE:?Set BACKEND_IMAGE to a published immutable image}
+  worker-backup:
+    build: !reset null
+    image: ${BACKEND_IMAGE:?Set BACKEND_IMAGE to a published immutable image}
+  frontend:
+    build: !reset null
+    image: ${FRONTEND_IMAGE:?Set FRONTEND_IMAGE to a published immutable image}

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>材料单项初审进度更新 · EasyGPA Plus</title>
+</head>
+
+<body style="margin:0;padding:0;background-color:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',system-ui,sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fafafa;padding:40px 16px;">
+        <tr>
+            <td align="center">
+                <table width="560" cellpadding="0" cellspacing="0" border="0"
+                    style="background-color:#ffffff;border:1px solid #e3e3e3;">
+
+                    <!-- brand header -->
+                    <tr>
+                        <td style="padding:22px 36px;border-bottom:1px solid #efefef;">
+                            <table cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <!-- easygpa-brand-mark -->
+                                    <td style="vertical-align:middle;">
+                                        <p style="margin:0;font-size:13px;font-weight:600;color:#0a0a0a;letter-spacing:-0.025em;line-height:1.2;">
+                                            EasyGPA Plus
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- body -->
+                    <tr>
+                        <td style="padding:36px 36px 28px;">
+
+                            <p style="margin:0 0 14px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:10px;font-weight:500;letter-spacing:0.2em;color:#8e8e8e;">
+                                ITEM REVIEW UPDATE
+                            </p>
+
+                            <p style="margin:0 0 10px;font-size:28px;font-weight:600;color:#0a0a0a;letter-spacing:-0.04em;line-height:1.15;">
+                                {{review_heading}}
+                            </p>
+
+                            <p style="margin:0 0 28px;font-size:13.5px;color:#575757;line-height:1.65;">
+                                你好 {{name}}，{{review_message}}
+                            </p>
+
+                            <!-- status pill -->
+                            <p style="margin:0 0 28px;">
+                                <span style="display:inline-block;padding:5px 11px;font-size:12px;font-weight:500;color:#0a0a0a;background-color:rgba(10,10,10,0.06);">
+                                    {{decision_label}}
+                                </span>
+                            </p>
+
+                            <!-- title hero -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:22px 0 0;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            TITLE
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">材料标题</p>
+                                        <p style="margin:0;font-size:22px;font-weight:600;color:#0a0a0a;letter-spacing:-0.03em;line-height:1.3;">
+                                            {{title}}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- category + score -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;border-top:1px solid #efefef;">
+                                <tr>
+                                    <td width="50%" style="padding:22px 16px 0 0;vertical-align:top;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            CATEGORY
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">所属大项</p>
+                                        <p style="margin:0;font-size:16px;font-weight:600;color:#0a0a0a;letter-spacing:-0.02em;line-height:1.35;">
+                                            {{category_name}}
+                                        </p>
+                                    </td>
+                                    <td width="50%" style="padding:22px 0 0 16px;vertical-align:top;border-left:1px solid #efefef;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            SCORE
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">{{score_label}}</p>
+                                        <p style="margin:0;font-size:22px;font-weight:600;color:#d6001c;letter-spacing:-0.03em;line-height:1.2;">
+                                            {{score}}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;border-top:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:22px 0 0;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            BASIS
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">审核依据</p>
+                                        <p style="margin:0;font-size:13.5px;color:#575757;line-height:1.65;">
+                                            {{basis}}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- cta -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;border-top:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:24px 0 0;text-align:center;">
+                                        <a href="https://gpa.example.org/"
+                                            style="display:inline-block;padding:12px 28px;background-color:#d6001c;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;letter-spacing:-0.02em;line-height:1.2;">
+                                            查看详情
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin:28px 0 0;font-size:13px;color:#575757;line-height:1.65;">
+                                {{action_note}}
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- footer -->
+                    <tr>
+                        <td style="padding:20px 36px 28px;border-top:1px solid #efefef;">
+                            <p style="margin:0 0 10px;font-size:12.5px;color:#8e8e8e;line-height:1.5;">
+                                EasyGPA Plus · 综测统计平台
+                            </p>
+                            <p style="margin:0;font-size:12px;color:#8e8e8e;line-height:1.6;">
+                                {{class_name}} · <a href="https://gpa.example.org/"
+                                    style="color:#d6001c;text-decoration:none;">https://gpa.example.org</a>
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

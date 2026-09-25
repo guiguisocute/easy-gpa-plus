@@ -1,0 +1,28 @@
+root = "/workspace/backend"
+tmp_dir = "/tmp/easygpa-air"
+
+[build]
+cmd = "sh /workspace/deploy/development/build-backend.sh"
+entrypoint = ["/dev-bin/zongce", "api"]
+include_ext = ["go", "mod", "sum", "sql", "toml"]
+exclude_dir = ["bin", "tmp"]
+exclude_regex = ["_test.go"]
+delay = 200
+poll = true
+poll_interval = 300
+send_interrupt = true
+# 优雅关停 + 释放 :8080 需要的时间;1s 过短会让下一次启动撞上
+# "bind: address already in use"
+kill_delay = "5s"
+# rerun=true 会在进程退出后立刻拉起(rerun_delay=100ms)。若退出原因是端口
+# 未释放,就会 bind 失败->重启->再失败,形成死循环;每轮都先打印完整 Gin
+# 路由表(~55KB),曾把容器日志刷到 93GB。重建交给文件变更触发即可。
+rerun = false
+
+[log]
+main_only = true
+time = true
+
+[screen]
+clear_on_rebuild = false
+keep_scroll = true

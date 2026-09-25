@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>邮件通道测试 · EasyGPA Plus</title>
+</head>
+
+<body style="margin:0;padding:0;background-color:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',system-ui,sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fafafa;padding:40px 16px;">
+        <tr>
+            <td align="center">
+                <table width="560" cellpadding="0" cellspacing="0" border="0"
+                    style="background-color:#ffffff;border:1px solid #e3e3e3;">
+
+                    <!-- brand header -->
+                    <tr>
+                        <td style="padding:22px 36px;border-bottom:1px solid #efefef;">
+                            <table cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <!-- easygpa-brand-mark -->
+                                    <td style="vertical-align:middle;">
+                                        <p style="margin:0;font-size:13px;font-weight:600;color:#0a0a0a;letter-spacing:-0.025em;line-height:1.2;">
+                                            EasyGPA Plus
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- body -->
+                    <tr>
+                        <td style="padding:36px 36px 28px;">
+
+                            <p style="margin:0 0 14px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:10px;font-weight:500;letter-spacing:0.2em;color:#8e8e8e;">
+                                CHANNEL TEST
+                            </p>
+
+                            <p style="margin:0 0 10px;font-size:28px;font-weight:600;color:#0a0a0a;letter-spacing:-0.04em;line-height:1.15;">
+                                邮件通道测试
+                            </p>
+
+                            <p style="margin:0 0 28px;font-size:13.5px;color:#575757;line-height:1.65;">
+                                你好，这是运维台主动触发的邮件通道核对。若你能看到本信，说明腾讯云 SES API 凭据、模板 ID 与出站通路工作正常。
+                            </p>
+
+                            <!-- status pill -->
+                            <p style="margin:0 0 28px;">
+                                <span style="display:inline-block;padding:5px 11px;font-size:12px;font-weight:500;color:#0a0a0a;background-color:rgba(10,10,10,0.06);">
+                                    主动触发
+                                </span>
+                            </p>
+
+                            <!-- metrics: status hero -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:22px 0 0;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            STATUS
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">投递结果</p>
+                                        <p style="margin:0;font-size:28px;font-weight:600;color:#0a0a0a;letter-spacing:-0.04em;line-height:1.15;">
+                                            通道正常
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- metrics: provider + time -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;border-top:1px solid #efefef;">
+                                <tr>
+                                    <td width="50%" style="padding:22px 16px 0 0;vertical-align:top;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            PROVIDER
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">当前通道</p>
+                                        <p style="margin:0;font-size:16px;font-weight:600;color:#0a0a0a;letter-spacing:-0.02em;line-height:1.35;">
+                                            {{provider}}
+                                        </p>
+                                    </td>
+                                    <td width="50%" style="padding:22px 0 0 16px;vertical-align:top;border-left:1px solid #efefef;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            SENT AT
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">发送时间</p>
+                                        <p style="margin:0;font-size:16px;font-weight:600;color:#0a0a0a;letter-spacing:-0.02em;line-height:1.35;">
+                                            {{sent_at}}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- metrics: recipient -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;border-top:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:22px 0 0;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            RECIPIENT
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">测试收件人</p>
+                                        <p style="margin:0;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:16px;font-weight:600;color:#0a0a0a;letter-spacing:0.02em;line-height:1.35;">
+                                            {{email}}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin:28px 0 0;font-size:13px;color:#575757;line-height:1.65;">
+                                此消息由运维超管在运维台触发，不会修改任何业务设置或通知偏好。
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- footer -->
+                    <tr>
+                        <td style="padding:20px 36px 28px;border-top:1px solid #efefef;">
+                            <p style="margin:0 0 10px;font-size:12.5px;color:#8e8e8e;line-height:1.5;">
+                                EasyGPA Plus · 综测统计平台
+                            </p>
+                            <p style="margin:0;font-size:12px;color:#8e8e8e;line-height:1.6;">
+                                如有疑问，可访问 <a href="https://gpa.example.org/"
+                                    style="color:#d6001c;text-decoration:none;">https://gpa.example.org</a>
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

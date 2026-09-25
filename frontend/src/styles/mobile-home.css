@@ -1,0 +1,62 @@
+/* 基础分明细让名称和得分先读完，再显示项目类型与申报/申诉状态。 */
+@media (max-width: 600px) {
+  .home-base-heading {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto 14px;
+    gap: 10px 8px !important;
+    min-height: 44px;
+  }
+
+  .home-base-heading-claim {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .home-base-title {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0 !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+
+  .home-base-score {
+    grid-column: 2;
+    grid-row: 1;
+    width: auto !important;
+    min-width: 44px;
+  }
+
+  .home-base-expand {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .home-base-kind {
+    grid-column: 1;
+    grid-row: 2;
+    width: auto !important;
+  }
+
+  .home-base-status {
+    grid-column: 2 / -1;
+    grid-row: 2;
+    width: auto !important;
+  }
+
+  .home-base-claim-note {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 6px !important;
+    padding-left: 0 !important;
+  }
+
+  .home-base-claim-note > span {
+    min-width: 0 !important;
+    overflow-wrap: anywhere;
+  }
+
+  .home-base-claim-note > button {
+    align-self: flex-start;
+  }
+}

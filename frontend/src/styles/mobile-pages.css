@@ -1,0 +1,210 @@
+/* 页面局部布局：沿用 shell 容器断点，让收起侧栏后的可用宽度决定排版。 */
+@container shell (max-width: 1060px) {
+  .submission-form-column,
+  .scheme-editor-column {
+    padding-left: 0 !important;
+  }
+
+  .scheme-versions-column {
+    padding-right: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+.activity-field {
+  min-width: 0;
+}
+
+.activity-field-label {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .submission-form-body {
+    padding: 20px 14px !important;
+  }
+
+  .submission-form-actions > button {
+    flex: 1 1 140px;
+    justify-content: center;
+  }
+
+  .submission-form-actions > span:last-child {
+    width: 100%;
+    margin-left: 0 !important;
+  }
+
+  .activity-table-list {
+    min-width: 0 !important;
+  }
+
+  .activity-table-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 7px !important;
+  }
+
+  .activity-table-row > span:nth-child(2) {
+    grid-row: 3;
+    text-align: left !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+
+  .activity-table-row > span:last-child {
+    display: none;
+  }
+
+  .activity-table-toggle {
+    flex-wrap: wrap;
+    min-height: 44px;
+  }
+
+  .activity-table-toggle > span:last-child {
+    flex-basis: 100%;
+    margin-left: 21px !important;
+  }
+
+  .review-subject-label {
+    display: none;
+  }
+
+  [data-r='reviewsubject'] {
+    gap: 8px !important;
+    padding: 0 10px !important;
+  }
+
+  .review-subject-identity {
+    flex: 1;
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 3px !important;
+    overflow: hidden;
+  }
+
+  .review-subject-identity > strong {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 16px !important;
+  }
+
+  .review-subject-identity > span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 0 !important;
+    background: transparent !important;
+    padding: 0 !important;
+    font-size: 10.5px !important;
+  }
+
+  .result-base-row {
+    display: grid !important;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    align-items: start !important;
+    gap: 8px !important;
+  }
+
+  .result-base-row > span:nth-child(3) {
+    width: auto !important;
+  }
+
+  .result-base-row > span:nth-child(4) {
+    grid-column: 2 / -1;
+    width: auto !important;
+  }
+
+  .result-base-row .result-base-basis,
+  .result-item-title {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+
+  .result-item-score {
+    width: auto !important;
+    min-width: 44px;
+  }
+
+  .review-queue {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px !important;
+  }
+
+  .review-queue > button {
+    width: 100%;
+    max-width: none !important;
+    min-height: 48px;
+  }
+
+  .review-queue > button:last-child {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-end;
+  }
+
+  .review-queue-pages {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+  }
+
+  .review-queue-pages > div {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .review-queue-pages button {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  [data-r='scheme-gui'] > div {
+    padding: 18px 14px !important;
+  }
+
+  [data-r='activity-head'] {
+    display: none !important;
+  }
+
+  [data-r='activity-row'] {
+    min-width: 0 !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 12px !important;
+    padding: 14px;
+    border: 1px solid var(--line);
+    background: var(--sub);
+  }
+
+  .activity-field:nth-child(1),
+  .activity-field:nth-child(4),
+  .activity-field:nth-child(5),
+  .activity-edit-actions {
+    grid-column: 1 / -1;
+  }
+
+  .activity-field-label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--fg2);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .activity-edit-actions {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .activity-edit-actions > button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 400px) {
+  [data-r='activity-row'] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}

@@ -1,0 +1,122 @@
+/* 外壳保持 57px 顶栏，页面里的吸顶审核条无需重新计算偏移。 */
+.shell-page-title {
+  min-width: 0;
+}
+
+.shell-page-label {
+  display: none;
+}
+
+.shell-drawer {
+  width: min(320px, calc(100vw - 32px)) !important;
+  max-height: 100dvh;
+  padding: max(16px, env(safe-area-inset-top)) 20px max(16px, env(safe-area-inset-bottom)) !important;
+  overscroll-behavior: contain;
+}
+
+.shell-drawer .shell-brand {
+  flex: none;
+  padding-bottom: 18px !important;
+}
+
+/* 侧栏那个红按钮在抽屉里也是拇指要够到的目标，48px 是触摸下限。 */
+.shell-drawer [data-r='navprimary'] {
+  min-height: 48px;
+  margin-bottom: 18px !important;
+}
+
+.shell-drawer > nav {
+  flex: 1 1 auto !important;
+  min-height: 48px !important;
+  overscroll-behavior: contain;
+}
+
+.shell-drawer > nav > button {
+  min-height: 48px;
+  flex: none;
+}
+
+.shell-drawer .shell-account {
+  flex: none;
+  padding-top: 12px;
+}
+
+/* 账号操作留在抽屉的布局里，横屏时不会从上边界弹出到屏幕外。 */
+.shell-drawer .shell-account-actions {
+  position: static !important;
+  max-height: min(40dvh, 240px);
+  margin-bottom: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  flex: none;
+}
+
+.shell-drawer .shell-account-actions > button {
+  min-height: 44px;
+  flex: none;
+}
+
+.shell-drawer [aria-label='关闭导航'] {
+  width: 44px !important;
+  height: 44px !important;
+}
+
+@container shell (max-width: 900px) {
+  .shell-page-en {
+    display: none;
+  }
+
+  .shell-page-label {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .shell-top-actions {
+    flex: none;
+  }
+
+  [data-r='burger'],
+  .shell-top-actions > button {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  [data-r='topslot']:not(:empty) {
+    flex: 1;
+  }
+
+  [data-r='topslot'] > div {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  [data-r='topslot'] > div > button {
+    min-height: 44px;
+    max-width: 100% !important;
+  }
+}
+
+@container shell (max-width: 600px) {
+  /* 有页面筛选时把空间留给操作，页面正文仍显示完整标题。 */
+  [data-r='top']:has([data-r='topslot']:not(:empty)) .shell-page-title {
+    display: none;
+  }
+
+  [data-r='topslot']:has(> div + div) > div {
+    flex: 1;
+  }
+
+  [data-r='topslot']:has(> div + div) > div > button {
+    gap: 6px !important;
+    padding-inline: 8px !important;
+  }
+
+  [data-r='topslot']:has(> div + div) > div > button > strong,
+  [data-r='topslot']:has(> div + div) > div > button > span:not(:first-child) {
+    display: none;
+  }
+}

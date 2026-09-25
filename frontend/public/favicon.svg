@@ -1,0 +1,12 @@
+<!-- 坐标一律取偶数：viewBox 是 32，浏览器标签页按 16px 画，2:1 缩放下只有偶数坐标落在整像素边界。
+     上一版用 1.25~2 宽的描边画天秤，缩到 16px 每笔都不足 1px，被抹成一片粉色。
+     形状同步自 frontend/src/components/ui.tsx 的 BrandMark。 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect width="32" height="32" fill="#d6001c"/>
+  <g fill="#fff">
+    <rect x="2" y="16" width="6" height="8"/>
+    <rect x="12" y="10" width="6" height="14"/>
+    <rect x="22" y="4" width="6" height="20"/>
+    <rect x="2" y="26" width="28" height="4"/>
+  </g>
+</svg>

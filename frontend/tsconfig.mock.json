@@ -1,0 +1,26 @@
+/* 演示站数据层的类型检查。
+
+   mock/src 复用 frontend/src/api/types.ts 的类型，本来就是为了让"后端字段改了、
+   演示站没跟上"这件事在编译期炸出来。但 tsconfig.app.json 只 include 了 src，
+   mock/ 一直在检查范围之外——于是 handle.ts 里的 sub.studentUserId 存活了很久
+   （Submission 上根本没有这个字段，恒为 undefined），举报台一条已定分条目都列
+   不出来，而 `tsc -b` 一路绿灯。
+
+   只收数据层那四个文件，不收 main.tsx / Hint.tsx：那两个是 React 入口，而 mock/
+   在 frontend/ 外面，TS 从 mock/ 往上找不到 frontend/node_modules 里的 @types/react。
+   把 react 用 paths 指回来会连 @types 一起绕开，反而更糟。这两个文件里没有任何
+   与后端对齐的形状，漏掉它们不影响这份检查要防的东西。 */
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.mock.tsbuildinfo",
+    "noEmit": true
+  },
+  "include": [
+    "src",
+    "../mock/src/db.ts",
+    "../mock/src/handle.ts",
+    "../mock/src/classLoad.ts",
+    "../mock/src/errors.ts"
+  ]
+}

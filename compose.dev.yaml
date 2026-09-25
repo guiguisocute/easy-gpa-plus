@@ -1,0 +1,246 @@
+name: easygpa-plus-dev
+
+# Local development stack. Source code is mounted into the Go and Vite
+# containers; named volumes keep dependencies, compiler caches, and data across
+
+x-logging: &default-logging
+  # json-file 默认无上限。单个容器日志曾涨到 93.4 GB 占满宿主磁盘,
+  # 这里统一封顶 50m x 3 = 最多 150 MB/容器。
+  driver: json-file
+  options:
+    max-size: "50m"
+    max-file: "3"
+
+x-backend-build: &backend-build
+  context: .
+  dockerfile: deploy/development/backend.Dockerfile
+
+x-backend-environment: &backend-environment
+  APP_ENV: dev
+  HTTP_ADDR: :8080
+  PUBLIC_URL: http://localhost:${DEV_FRONTEND_PORT:-35173}
+  MCP_ENABLED: ${MCP_ENABLED:-true}
+  MCP_MAX_TTL_HOURS: ${MCP_MAX_TTL_HOURS:-24}
+  COOKIE_SECURE: "false"
+  DATABASE_URL: postgres://easygpa_app:${PG_APP_PASSWORD:-easygpa-app-dev}@postgres:5432/${PG_DB:-easygpa}?sslmode=disable
+  MIGRATIONS_DATABASE_URL: postgres://${PG_USER:-easygpa}:${PG_PASSWORD:-easygpa-dev}@postgres:5432/${PG_DB:-easygpa}?sslmode=disable
+  OPS_DATABASE_URL: postgres://easygpa_ops:${PG_OPS_PASSWORD:-easygpa-ops-dev}@postgres:5432/${PG_DB:-easygpa}?sslmode=disable
+  REDIS_ADDR: redis:6379
+  S3_ENDPOINT: garage:3900
+  S3_PUBLIC_ENDPOINT: localhost:${DEV_S3_PORT:-33900}
+  S3_PUBLIC_USE_SSL: "false"
+  MAIL_TEMPLATE_DIR: /workspace/asset/mailtemplate
+  BACKUP_DIR: /backups/local
+  BACKUP_OFFSITE_DIR: ""
+  GOCACHE: /go/cache/build
+  GOMODCACHE: /go/pkg/mod
+
+x-backend-volumes: &backend-volumes
+  - type: bind
+    source: .
+    target: /workspace
+    read_only: true
+  - type: volume
+    source: go-mod-cache
+    target: /go/pkg/mod
+  - type: volume
+    source: go-build-cache
+    target: /go/cache/build
+  - type: volume
+    source: backend-bin
+    target: /dev-bin
+  - type: volume
+    source: backup-data
+    target: /backups/local
+
+x-backend-service: &backend-service
+  build: *backend-build
+  working_dir: /workspace/backend
+  env_file:
+    - path: .env.development
+      required: true
+  environment: *backend-environment
+  volumes: *backend-volumes
+  init: true
+  stop_grace_period: 20s
+  mem_limit: 1g
+  cpus: 1.0
+  pids_limit: 256
+
+services:
+  postgres:
+    logging: *default-logging
+    image: postgres:17.10-alpine
+    restart: unless-stopped
+    mem_limit: 1g
+    cpus: 0.75
+    pids_limit: 128
+    environment:
+      POSTGRES_USER: ${PG_USER:-easygpa}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-easygpa-dev}
+      POSTGRES_DB: ${PG_DB:-easygpa}
+      POSTGRES_APP_PASSWORD: ${PG_APP_PASSWORD:-easygpa-app-dev}
+      POSTGRES_OPS_PASSWORD: ${PG_OPS_PASSWORD:-easygpa-ops-dev}
+    ports:
+      - "127.0.0.1:${DEV_POSTGRES_PORT:-35432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./deploy/postgres/init-roles.sh:/docker-entrypoint-initdb.d/010-easygpa-roles.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-easygpa} -d ${PG_DB:-easygpa}"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    logging: *default-logging
+    image: redis:8.8-alpine
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.25
+    pids_limit: 64
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec", "--maxmemory", "160mb", "--maxmemory-policy", "noeviction"]
+    ports:
+      - "127.0.0.1:${DEV_REDIS_PORT:-36379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  garage:
+    logging: *default-logging
+    image: dxflrs/garage:v2.3.0
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 0.5
+    pids_limit: 64
+    command: ["/garage", "server", "--single-node", "--default-bucket"]
+    environment:
+      GARAGE_DEFAULT_ACCESS_KEY: ${S3_ACCESS_KEY:-GK0000dead0000beef0000cafe}
+      GARAGE_DEFAULT_SECRET_KEY: ${S3_SECRET_KEY:-deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef}
+      GARAGE_DEFAULT_BUCKET: ${S3_BUCKET:-easygpa}
+    ports:
+      - "127.0.0.1:${DEV_S3_PORT:-33900}:3900"
+      - "127.0.0.1:${DEV_GARAGE_ADMIN_PORT:-33903}:3903"
+    volumes:
+      - ./deploy/garage/garage.toml:/etc/garage.toml:ro
+      - garage-meta:/var/lib/garage/meta
+      - garage-data:/var/lib/garage/data
+    healthcheck:
+      test: ["CMD", "/garage", "status"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    logging: *default-logging
+    <<: *backend-service
+    init: false
+    # Cold compilation of the generated SDK exceeds 1 GiB.
+    mem_limit: 3g
+    cpus: 2.0
+    restart: "no"
+    command: ["go", "run", "-buildvcs=false", "./cmd/zongce", "migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    logging: *default-logging
+    <<: *backend-service
+    mem_limit: 3g
+    cpus: 2.0
+    restart: on-failure:5
+    command: ["air", "-c", "/workspace/deploy/development/air-api.toml"]
+    ports:
+      - "127.0.0.1:${DEV_API_PORT:-38080}:8080"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      garage:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8080/healthz >/dev/null"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+      start_period: 30s
+
+  workers:
+    logging: *default-logging
+    <<: *backend-service
+    restart: on-failure:5
+    mem_limit: 1536m
+    cpus: 1.5
+    pids_limit: 512
+    command: ["sh", "/workspace/deploy/development/watch-workers.sh", "/dev-bin/zongce", "/dev-bin/zongce.version"]
+    depends_on:
+      api:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      garage:
+        condition: service_healthy
+
+  frontend:
+    logging: *default-logging
+    image: node:24-alpine
+    restart: unless-stopped
+    mem_limit: 768m
+    cpus: 0.75
+    pids_limit: 256
+    working_dir: /workspace/frontend
+    init: true
+    entrypoint: ["sh", "/workspace/deploy/development/frontend-entrypoint.sh"]
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+    environment:
+      VITE_API_PROXY: http://api:8080
+      VITE_AI_ENABLED: ${VITE_AI_ENABLED:-false}
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: ${DEV_WATCH_INTERVAL_MS:-500}
+      npm_config_cache: /npm-cache
+    ports:
+      - "127.0.0.1:${DEV_FRONTEND_PORT:-35173}:5173"
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+        read_only: true
+      - type: volume
+        source: frontend-node-modules
+        target: /workspace/frontend/node_modules
+      - type: volume
+        source: frontend-npm-cache
+        target: /npm-cache
+      - type: volume
+        source: frontend-dist
+        target: /workspace/frontend/dist
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:5173/ >/dev/null"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+      start_period: 30s
+
+volumes:
+  postgres-data:
+  redis-data:
+  garage-meta:
+  garage-data:
+  backup-data:
+  go-mod-cache:
+  go-build-cache:
+  backend-bin:
+  frontend-node-modules:
+  frontend-npm-cache:
+  frontend-dist:

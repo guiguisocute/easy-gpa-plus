@@ -1,0 +1,227 @@
+.mode-choice {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 40px 36px 48px;
+  color: var(--fg);
+}
+.mode-choice-brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+.mode-choice-intro {
+  margin: 32px 0 24px;
+}
+.mode-choice-back {
+  margin-left: auto;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.mode-choice-intro > span,
+.mode-choice-index {
+  font:
+    11px 'JetBrains Mono',
+    monospace;
+  letter-spacing: 0.12em;
+  color: var(--fg3);
+}
+.mode-choice h1 {
+  font-size: clamp(24px, 3vw, 34px);
+  letter-spacing: -0.045em;
+  margin: 14px 0;
+  font-weight: 600;
+}
+.mode-choice p,
+.mode-choice li {
+  font-size: 13px;
+  line-height: 1.9;
+  color: var(--fg2);
+}
+.mode-choice-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.mode-choice-card {
+  padding: 24px 30px 30px;
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.mode-choice-card h2 {
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  margin: 12px 0 0;
+}
+.mode-choice-card ul {
+  padding-left: 18px;
+  margin: 0 0 18px;
+  flex: 1;
+}
+.mode-choice-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 0;
+}
+.mode-choice-title h2 {
+  margin: 0 !important;
+}
+/* 图区与 SVG viewBox 同为约 460×250，桌面端 1:1 绘制；窄屏按宽度等比缩放。 */
+.mode-choice-art {
+  width: 100%;
+  margin: 0 0 22px;
+  aspect-ratio: 460 / 250;
+  max-height: 280px;
+  background: var(--sub);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mode-choice-art svg {
+  width: 100%;
+  height: 100%;
+}
+.mode-choice-art text {
+  text-anchor: middle;
+  fill: var(--fg2);
+  font-size: 13px;
+  font-family: inherit;
+}
+.mode-links {
+  fill: none;
+  stroke: var(--fg3);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.mode-ring {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 1.5;
+}
+.mode-flow {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.mode-arrowhead {
+  fill: var(--red);
+}
+.mode-random-links {
+  fill: none;
+  stroke: var(--fg3);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 4;
+  opacity: .7;
+}
+.mode-pick {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+.mode-assignment {
+  fill: var(--redsoft);
+  stroke: var(--red);
+  stroke-width: 1.2;
+}
+.mode-choice-art .mode-assignment-text {
+  fill: var(--red);
+  font-size: 13px;
+  font-weight: 600;
+}
+.mode-node {
+  fill: var(--bg);
+  stroke: var(--line);
+  stroke-width: 1.2;
+}
+.mode-choice-art .mode-label {
+  fill: var(--fg);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+.mode-choice-art .mode-caption {
+  fill: var(--fg3);
+  font-size: 12.5px;
+}
+.mode-person circle,
+.mode-person path {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+.mode-doc {
+  fill: var(--bg);
+  stroke: var(--fg3);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.mode-doc-active {
+  fill: var(--red);
+  stroke: var(--red);
+}
+.mode-lead {
+  fill: var(--red);
+}
+.mode-choice-art .mode-lead-text {
+  fill: var(--onAccent);
+  font-size: 14px;
+  font-weight: 600;
+}
+.mode-peer {
+  fill: var(--bg);
+  stroke: var(--red);
+  stroke-width: 1.5;
+}
+.mode-choice-art .mode-center {
+  font-size: 17px;
+  font-weight: 600;
+  fill: var(--fg);
+}
+.mode-choice-art .mode-center-sub {
+  font-size: 12.5px;
+  fill: var(--fg3);
+}
+.mode-choice-beta {
+  margin: 0 0 18px !important;
+  padding: 10px 12px;
+  background: var(--warnBg);
+  border-left: 2px solid var(--warn);
+  font-size: 12.5px !important;
+  line-height: 1.8 !important;
+}
+.mode-choice-foot {
+  margin: 24px 0 0;
+  max-width: 800px;
+}
+.mode-choice-error {
+  color: var(--red) !important;
+}
+@media (max-width: 700px) {
+  .mode-choice {
+    padding: 24px 20px;
+  }
+  .mode-choice-intro {
+    margin-top: 35px;
+  }
+  .mode-choice-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .mode-choice-card {
+    padding: 20px;
+  }
+  .mode-choice-art {
+    max-height: none;
+  }
+}

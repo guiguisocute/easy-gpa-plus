@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>材料封存成功 · EasyGPA Plus</title>
+</head>
+
+<body style="margin:0;padding:0;background-color:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',system-ui,sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fafafa;padding:40px 16px;">
+        <tr>
+            <td align="center">
+                <table width="560" cellpadding="0" cellspacing="0" border="0"
+                    style="background-color:#ffffff;border:1px solid #e3e3e3;">
+
+                    <!-- brand header -->
+                    <tr>
+                        <td style="padding:22px 36px;border-bottom:1px solid #efefef;">
+                            <table cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <!-- easygpa-brand-mark -->
+                                    <td style="vertical-align:middle;">
+                                        <p style="margin:0;font-size:13px;font-weight:600;color:#0a0a0a;letter-spacing:-0.025em;line-height:1.2;">
+                                            EasyGPA Plus
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- body -->
+                    <tr>
+                        <td style="padding:36px 36px 28px;">
+
+                            <p style="margin:0 0 14px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:10px;font-weight:500;letter-spacing:0.2em;color:#8e8e8e;">
+                                SEAL CONFIRMED
+                            </p>
+
+                            <p style="margin:0 0 10px;font-size:28px;font-weight:600;color:#0a0a0a;letter-spacing:-0.04em;line-height:1.15;">
+                                材料封存成功
+                            </p>
+
+                            <p style="margin:0 0 28px;font-size:13.5px;color:#575757;line-height:1.65;">
+                                你好 {{name}}，你的综测材料已完成封存。提交与修改入口现已关闭；审核、申诉与结果查看不受影响。
+                            </p>
+
+                            <!-- status pill -->
+                            <p style="margin:0 0 28px;">
+                                <span style="display:inline-block;padding:5px 11px;font-size:12px;font-weight:500;color:#0a0a0a;background-color:rgba(10,10,10,0.06);">
+                                    已封存
+                                </span>
+                            </p>
+
+                            <!-- metrics: class -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:22px 0 0;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            CLASS
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">所属班级</p>
+                                        <p style="margin:0;font-size:18px;font-weight:600;color:#0a0a0a;letter-spacing:-0.02em;line-height:1.35;">
+                                            {{class_name}}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- metrics: time + source -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;border-top:1px solid #efefef;">
+                                <tr>
+                                    <td width="50%" style="padding:22px 16px 0 0;vertical-align:top;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            TIME
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">封存时间</p>
+                                        <p style="margin:0;font-size:16px;font-weight:600;color:#0a0a0a;letter-spacing:-0.02em;line-height:1.35;">
+                                            {{sealed_at}}
+                                        </p>
+                                    </td>
+                                    <td width="50%" style="padding:22px 0 0 16px;vertical-align:top;border-left:1px solid #efefef;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            SOURCE
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">封存方式</p>
+                                        <p style="margin:0;font-size:16px;font-weight:600;color:#0a0a0a;letter-spacing:-0.02em;line-height:1.35;">
+                                            {{source_label}}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;border-top:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:22px 0 0;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            SNAPSHOT
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">当前提交概况</p>
+                                        <p style="margin:0;font-size:16px;font-weight:600;color:#0a0a0a;letter-spacing:-0.02em;line-height:1.35;">
+                                            已提交 {{submitted_count}} 条 · 已定分 {{decided_count}} 条
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin:28px 0 10px;font-size:13px;color:#575757;line-height:1.65;">
+                                如需修改材料，须联系班级管理员解封（解封会写入审计）。申诉权不受封存限制。
+                            </p>
+                            <p style="margin:0;font-size:13px;color:#575757;line-height:1.65;">
+                                如非本人操作，请尽快登录并检查账号安全。
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- footer -->
+                    <tr>
+                        <td style="padding:20px 36px 28px;border-top:1px solid #efefef;">
+                            <p style="margin:0 0 10px;font-size:12.5px;color:#8e8e8e;line-height:1.5;">
+                                EasyGPA Plus · 综测统计平台
+                            </p>
+                            <p style="margin:0;font-size:12px;color:#8e8e8e;line-height:1.6;">
+                                如有疑问，可访问 <a href="https://gpa.example.org/"
+                                    style="color:#d6001c;text-decoration:none;">https://gpa.example.org</a>
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

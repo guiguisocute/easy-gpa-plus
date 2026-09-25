@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>综测进展提醒 · EasyGPA Plus</title>
+    <style>
+        @media screen and (max-width: 480px) {
+            .mail-outer { padding: 24px 12px !important; }
+            .mail-header { padding: 22px 24px !important; }
+            .mail-body { padding: 28px 24px !important; }
+            .mail-footer { padding: 20px 24px 24px !important; }
+            .mail-meta-cell { display: block !important; width: auto !important; padding: 18px 0 !important; }
+            .mail-meta-time { border-left: 0 !important; border-top: 1px solid #efefef !important; }
+        }
+    </style>
+</head>
+
+<body style="margin:0;padding:0;background-color:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',system-ui,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+        style="background-color:#fafafa;">
+        <tr>
+            <td class="mail-outer" align="center" style="padding:40px 16px;">
+                <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0"
+                    style="width:100%;max-width:560px;background-color:#ffffff;border:1px solid #e3e3e3;table-layout:fixed;">
+
+                    <!-- brand header -->
+                    <tr>
+                        <td class="mail-header" style="padding:22px 36px;border-bottom:1px solid #efefef;">
+                            <!-- easygpa-brand-mark -->
+                            <p style="margin:0;font-size:13px;font-weight:600;color:#0a0a0a;letter-spacing:-0.025em;line-height:1.2;">
+                                EasyGPA Plus
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- body -->
+                    <tr>
+                        <td class="mail-body" style="padding:36px 36px 28px;overflow-wrap:anywhere;">
+                            <p style="margin:0 0 14px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:10px;font-weight:500;letter-spacing:0.2em;color:#8e8e8e;">
+                                NOTIFICATION ALERT
+                            </p>
+                            <h1 style="margin:0 0 10px;font-size:28px;font-weight:600;color:#0a0a0a;letter-spacing:-0.04em;line-height:1.25;">
+                                {{heading}}
+                            </h1>
+                            <p style="margin:0 0 28px;font-size:13.5px;color:#575757;line-height:1.65;">
+                                你好 {{name}}，本次综测更新已合并如下。
+                            </p>
+
+                            <!-- combined updates -->
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                                style="border-top:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:22px 0;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            UPDATES
+                                        </p>
+                                        <p style="margin:0;font-size:18px;font-weight:600;color:#0a0a0a;letter-spacing:-0.02em;line-height:1.7;white-space:pre-line;">{{summary}}</p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- class + time -->
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                                style="border-top:1px solid #efefef;table-layout:fixed;">
+                                <tr>
+                                    <td class="mail-meta-cell" width="50%" style="padding:22px 16px 22px 0;vertical-align:top;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            CLASS
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">所属班级</p>
+                                        <p style="margin:0;font-size:16px;font-weight:600;color:#0a0a0a;letter-spacing:-0.02em;line-height:1.35;">
+                                            {{class_name}}
+                                        </p>
+                                    </td>
+                                    <td class="mail-meta-cell mail-meta-time" width="50%" style="padding:22px 0 22px 16px;vertical-align:top;border-left:1px solid #efefef;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            TIME
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">生成时间 · 北京时间</p>
+                                        <p style="margin:0;font-size:16px;font-weight:600;color:#0a0a0a;letter-spacing:-0.02em;line-height:1.35;">
+                                            {{sent_at}}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- progress details -->
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                                style="border-top:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:22px 0 0;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            DETAILS
+                                        </p>
+                                        <p style="margin:0;font-size:13.5px;color:#575757;line-height:1.7;white-space:pre-line;">{{details}}</p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin:28px 0 0;font-size:13px;color:#575757;line-height:1.65;">
+                                请进入平台查看当前结果、待办和具体截止时间。邮件中的进展不代表最终确认，也不会改变你的申诉权利。
+                            </p>
+
+                            <!-- cta -->
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                                style="margin-top:24px;border-top:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:24px 0 0;text-align:center;">
+                                        <a href="https://gpa.example.org/?v={{view}}"
+                                            style="display:inline-block;padding:12px 28px;background-color:#d6001c;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;letter-spacing:-0.02em;line-height:1.2;">
+                                            进入 EasyGPA Plus 查看
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- footer: recipient preferences stay visible -->
+                    <tr>
+                        <td class="mail-footer" style="padding:20px 36px 28px;border-top:1px solid #efefef;">
+                            <p style="margin:0 0 10px;font-size:12.5px;color:#8e8e8e;line-height:1.5;">
+                                EasyGPA Plus · 综测统计平台
+                            </p>
+                            <p style="margin:0 0 12px;font-size:12px;color:#8e8e8e;line-height:1.65;">
+                                {{preference_note}}
+                            </p>
+                            <p style="margin:0 0 12px;font-size:12.5px;line-height:1.8;">
+                                <a href="https://gpa.example.org/?v=stuAccount"
+                                    style="color:#d6001c;text-decoration:none;">调整类别与频率</a>
+                                <span style="color:#b3b3b3;"> · </span>
+                                <a href="https://gpa.example.org/?mail_opt_out=1#{{opt_out_token}}"
+                                    style="color:#d6001c;text-decoration:none;">退订业务邮件（无需登录）</a>
+                            </p>
+                            <p style="margin:0;font-size:12px;color:#8e8e8e;line-height:1.65;">
+                                退订后仍可在平台查看业务信息。你主动申请的验证码和找回密码邮件不受影响。请勿直接回复此系统邮件。
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

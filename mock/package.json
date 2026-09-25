@@ -1,0 +1,12 @@
+{
+  "name": "easygpa-mock",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npm --prefix ../frontend run mock",
+    "build": "npm --prefix ../frontend run mock:build",
+    "preview": "npm --prefix ../frontend run mock:preview",
+    "deploy": "npm --prefix ../frontend run mock:deploy"
+  }
+}

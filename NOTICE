@@ -1,0 +1,5 @@
+EasyGPA Plus is derived from EasyGPA.
+Project modifications are distributed under AGPL-3.0-only.
+
+Bundled fonts retain their SIL Open Font License 1.1; see frontend/public/fonts/OFL-*.txt.
+Dependencies retain their respective licenses; see the npm and Go dependency manifests.

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>综测结算完成 · EasyGPA Plus</title>
+</head>
+
+<body style="margin:0;padding:0;background-color:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',system-ui,sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fafafa;padding:40px 16px;">
+        <tr>
+            <td align="center">
+                <table width="560" cellpadding="0" cellspacing="0" border="0"
+                    style="background-color:#ffffff;border:1px solid #e3e3e3;">
+
+                    <!-- brand header -->
+                    <tr>
+                        <td style="padding:22px 36px;border-bottom:1px solid #efefef;">
+                            <table cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <!-- easygpa-brand-mark -->
+                                    <td style="vertical-align:middle;">
+                                        <p style="margin:0;font-size:13px;font-weight:600;color:#0a0a0a;letter-spacing:-0.025em;line-height:1.2;">
+                                            EasyGPA Plus
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- body -->
+                    <tr>
+                        <td style="padding:36px 36px 28px;">
+
+                            <p style="margin:0 0 14px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:10px;font-weight:500;letter-spacing:0.2em;color:#8e8e8e;">
+                                SETTLEMENT DONE
+                            </p>
+
+                            <p style="margin:0 0 10px;font-size:28px;font-weight:600;color:#0a0a0a;letter-spacing:-0.04em;line-height:1.15;">
+                                综测结算已完成
+                            </p>
+
+                            <p style="margin:0 0 28px;font-size:13.5px;color:#575757;line-height:1.65;">
+                                你好 {{name}}，{{class_name}} 的综测结算已生成只读快照。以下为你的结果摘要，完整明细请登录平台查看。
+                            </p>
+
+                            <!-- metrics: total score hero -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:22px 0 0;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            TOTAL
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">综测总分</p>
+                                        <p style="margin:0;font-size:36px;font-weight:600;color:#0a0a0a;letter-spacing:-0.045em;line-height:1.1;">
+                                            {{total_score}} <span style="font-size:14px;font-weight:500;color:#8e8e8e;">分</span>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- metrics row: ranks -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;border-top:1px solid #efefef;">
+                                <tr>
+                                    <td width="50%" style="padding:22px 16px 0 0;vertical-align:top;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            CLASS RANK
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">班级排名</p>
+                                        <p style="margin:0;font-size:22px;font-weight:600;color:#0a0a0a;letter-spacing:-0.03em;line-height:1.2;">
+                                            {{class_rank}} <span style="font-size:13px;font-weight:500;color:#8e8e8e;">/ {{class_size}}</span>
+                                        </p>
+                                    </td>
+                                    <td width="50%" style="padding:22px 0 0 16px;vertical-align:top;border-left:1px solid #efefef;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            HONOR
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">三好标志</p>
+                                        <p style="margin:0;font-size:22px;font-weight:600;color:#0a0a0a;letter-spacing:-0.03em;line-height:1.2;">
+                                            {{honor_label}}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Categories and weights are defined by the active class scheme. -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;border-top:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:18px 0 0;font-size:12.5px;color:#575757;line-height:1.8;">
+                                        <strong style="color:#0a0a0a;">分项得分：</strong>分项名称与权重由本班当前方案定义，请登录平台查看完整组成和计算依据。
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;border-top:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:18px 0 0;font-size:12.5px;color:#575757;line-height:1.8;">
+                                        <strong style="color:#0a0a0a;">方案版本：</strong>{{scheme_name}} · v{{scheme_version}}<br>
+                                        <strong style="color:#0a0a0a;">结算时间：</strong>{{settled_at}}
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- cta -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;border-top:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:24px 0 0;text-align:center;">
+                                        <a href="https://gpa.example.org/"
+                                            style="display:inline-block;padding:12px 28px;background-color:#d6001c;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;letter-spacing:-0.02em;line-height:1.2;">
+                                            查看完整结果
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin:28px 0 0;font-size:13px;color:#575757;line-height:1.65;">
+                                结算结果为只读快照。窗口内若出现新的改判，管理员需重新结算，不会悄悄改数。
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- footer -->
+                    <tr>
+                        <td style="padding:20px 36px 28px;border-top:1px solid #efefef;">
+                            <p style="margin:0 0 10px;font-size:12.5px;color:#8e8e8e;line-height:1.5;">
+                                EasyGPA Plus · 综测统计平台
+                            </p>
+                            <p style="margin:0;font-size:12px;color:#8e8e8e;line-height:1.6;">
+                                如有疑问，可访问 <a href="https://gpa.example.org/"
+                                    style="color:#d6001c;text-decoration:none;">https://gpa.example.org</a>
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

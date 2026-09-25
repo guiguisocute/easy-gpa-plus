@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>窗口截止提醒 · EasyGPA Plus</title>
+</head>
+
+<body style="margin:0;padding:0;background-color:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',system-ui,sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fafafa;padding:40px 16px;">
+        <tr>
+            <td align="center">
+                <table width="560" cellpadding="0" cellspacing="0" border="0"
+                    style="background-color:#ffffff;border:1px solid #e3e3e3;">
+
+                    <!-- brand header -->
+                    <tr>
+                        <td style="padding:22px 36px;border-bottom:1px solid #efefef;">
+                            <table cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <!-- easygpa-brand-mark -->
+                                    <td style="vertical-align:middle;">
+                                        <p style="margin:0;font-size:13px;font-weight:600;color:#0a0a0a;letter-spacing:-0.025em;line-height:1.2;">
+                                            EasyGPA Plus
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- body -->
+                    <tr>
+                        <td style="padding:36px 36px 28px;">
+
+                            <p style="margin:0 0 14px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:10px;font-weight:500;letter-spacing:0.2em;color:#8e8e8e;">
+                                WINDOW REMINDER
+                            </p>
+
+                            <p style="margin:0 0 10px;font-size:28px;font-weight:600;color:#0a0a0a;letter-spacing:-0.04em;line-height:1.15;">
+                                请及时完成并封存
+                            </p>
+
+                            <p style="margin:0 0 28px;font-size:13.5px;color:#575757;line-height:1.65;">
+                                你好 {{name}}，本班综测开放窗口即将截止。请尽快补齐材料并完成本人封存；截止后系统将自动封存全部账号。
+                            </p>
+
+                            <!-- status pill -->
+                            <p style="margin:0 0 28px;">
+                                <span style="display:inline-block;padding:5px 11px;font-size:12px;font-weight:500;color:#d6001c;background-color:rgba(214,0,28,0.08);">
+                                    剩余 {{days_left}} 天
+                                </span>
+                            </p>
+
+                            <!-- metrics -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #efefef;">
+                                <tr>
+                                    <td width="50%" style="padding:22px 16px 0 0;vertical-align:top;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            CLOSE
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">所属班级</p>
+                                        <p style="margin:0;font-size:18px;font-weight:600;color:#0a0a0a;letter-spacing:-0.02em;line-height:1.35;">
+                                            {{class_name}}
+                                        </p>
+                                    </td>
+                                    <td width="50%" style="padding:22px 0 0 16px;vertical-align:top;border-left:1px solid #efefef;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            CLOSE
+                                        </p>
+                                        <p style="margin:0 0 4px;font-size:12px;color:#8e8e8e;">窗口截止</p>
+                                        <p style="margin:0;font-size:18px;font-weight:600;color:#d6001c;letter-spacing:-0.02em;line-height:1.35;">
+                                            {{window_close}}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;border-top:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:22px 0 0;">
+                                        <p style="margin:0 0 8px;font-family:Consolas,'SF Mono',Menlo,monospace;font-size:9.5px;font-weight:500;letter-spacing:0.16em;color:#8e8e8e;">
+                                            NEXT
+                                        </p>
+                                        <p style="margin:0 0 10px;font-size:12px;color:#8e8e8e;">建议你现在完成</p>
+                                        <p style="margin:0 0 6px;font-size:13.5px;color:#575757;line-height:1.65;">
+                                            · 核对已提交条目与佐证是否齐全
+                                        </p>
+                                        <p style="margin:0 0 6px;font-size:13.5px;color:#575757;line-height:1.65;">
+                                            · 补交尚未提交的加分材料
+                                        </p>
+                                        <p style="margin:0;font-size:13.5px;color:#575757;line-height:1.65;">
+                                            · 键入确认短语与学号完成封存
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- cta -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;border-top:1px solid #efefef;">
+                                <tr>
+                                    <td style="padding:24px 0 0;text-align:center;">
+                                        <a href="https://gpa.example.org/"
+                                            style="display:inline-block;padding:12px 28px;background-color:#d6001c;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;letter-spacing:-0.02em;line-height:1.2;">
+                                            打开综测平台
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin:28px 0 0;font-size:13px;color:#575757;line-height:1.65;">
+                                本提醒只发给尚未封存的同学。封存后提交入口关闭，审核与申诉不受影响。
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- footer -->
+                    <tr>
+                        <td style="padding:20px 36px 28px;border-top:1px solid #efefef;">
+                            <p style="margin:0 0 10px;font-size:12.5px;color:#8e8e8e;line-height:1.5;">
+                                EasyGPA Plus · 综测统计平台
+                            </p>
+                            <p style="margin:0;font-size:12px;color:#8e8e8e;line-height:1.6;">
+                                如有疑问，可访问 <a href="https://gpa.example.org/"
+                                    style="color:#d6001c;text-decoration:none;">https://gpa.example.org</a>
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

@@ -1,0 +1,12 @@
+[
+  {"key":"platform-overview","title":"平台总览、角色与数据边界","file":"content/00-platform-overview.md","roles":["student","group","class_admin"],"views":["stuHome","revTasks","admBoard"],"keywords":["角色","切换视角","权限","数据边界"],"order":10},
+  {"key":"account-access","title":"登录注册与账号设置","file":"content/10-account-access.md","roles":["student","group","class_admin"],"views":["stuAccount"],"keywords":["登录","注册","密码","邮箱","账号"],"order":20},
+  {"key":"student-submit","title":"学生提交材料指南","file":"content/20-student-submit.md","roles":["student"],"views":["stuSubmit"],"keywords":["在哪里交材料","怎么交材料","提交材料","佐证","草稿","AI整理"],"order":30},
+  {"key":"student-status-appeal","title":"学生提交状态、申诉与封存","file":"content/21-student-status-appeal.md","roles":["student"],"views":["stuList","stuHome"],"keywords":["我的提交","审核状态","申诉","封存","解封"],"order":40},
+  {"key":"review-workbench","title":"综测小组任务与审核工作台","file":"content/30-review-workbench.md","roles":["group"],"views":["revTasks","revDesk"],"keywords":["待办任务","双人盲审","审核","佐证","结论"],"order":50},
+  {"key":"review-followup","title":"复评、异议与审核记录","file":"content/31-review-followup.md","roles":["group"],"views":["revAppeals","revObjections","revCat","revHist"],"keywords":["申诉复评","扣分异议","分类建议","审核量","历史审核"],"order":60},
+  {"key":"admin-setup","title":"班级方案、窗口与成员管理","file":"content/40-admin-setup.md","roles":["class_admin"],"views":["admScheme","admTimeline","admRoster"],"keywords":["方案版本","时间窗口","能力开关","名单","角色"],"order":70},
+  {"key":"admin-review-ops","title":"分发、仲裁与专业素质分","file":"content/41-admin-review-ops.md","roles":["class_admin"],"views":["admDispatch","admSubs","admGpa"],"keywords":["分发","冲突仲裁","分类","专业素质分","GPA"],"order":80},
+  {"key":"admin-closeout","title":"知识、授权、结算、导出与审计","file":"content/42-admin-closeout.md","roles":["class_admin"],"views":["admKnowledge","admFinals","admExport","admAudit","admBoard"],"keywords":["知识库","AI同意","封存","终表","结算","导出","审计"],"order":90},
+  {"key":"faq-troubleshooting","title":"常见问题与故障排查","file":"content/90-faq-troubleshooting.md","roles":["student","group","class_admin"],"views":["stuSubmit","stuList","revDesk","admKnowledge"],"keywords":["按钮不可用","上传失败","Agent未启用","未授权","在哪里交材料","怎么交材料"],"order":100}
+]

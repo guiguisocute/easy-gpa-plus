@@ -1,0 +1,84 @@
+name: cd
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      full_deploy:
+        description: Publish both component images
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  actions: read
+  packages: write
+concurrency:
+  group: component-release
+  cancel-in-progress: false
+env:
+  RELEASE_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+jobs:
+  publish:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ env.RELEASE_SHA }}
+          fetch-depth: 0
+      - name: Plan independent component versions
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FORCE_FULL: ${{ inputs.full_deploy || false }}
+        run: node scripts/ci/release-plan.mjs
+      - name: Normalize image repository
+        id: image
+        run: echo "repository=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - if: steps.plan.outputs.backend == 'true' || steps.plan.outputs.frontend == 'true'
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+      - if: steps.plan.outputs.backend == 'true' || steps.plan.outputs.frontend == 'true'
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish backend only when affected
+        if: steps.plan.outputs.backend == 'true'
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: true
+          tags: ${{ steps.image.outputs.repository }}-backend:${{ env.RELEASE_SHA }}
+          build-args: VERSION=${{ env.RELEASE_SHA }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,scope=backend,mode=max
+      - name: Publish frontend only when affected
+        if: steps.plan.outputs.frontend == 'true'
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
+        with:
+          context: .
+          file: frontend/Dockerfile
+          push: true
+          tags: ${{ steps.image.outputs.repository }}-frontend:${{ env.RELEASE_SHA }}
+          build-args: VERSION=${{ env.RELEASE_SHA }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,scope=frontend,mode=max
+      - name: Export immutable image pair
+        env:
+          REPOSITORY: ${{ steps.image.outputs.repository }}
+          FRONTEND_SHA: ${{ steps.plan.outputs.frontend_sha }}
+          BACKEND_SHA: ${{ steps.plan.outputs.backend_sha }}
+        run: |
+          printf 'FRONTEND_IMAGE=%s-frontend:%s\nBACKEND_IMAGE=%s-backend:%s\n' "$REPOSITORY" "$FRONTEND_SHA" "$REPOSITORY" "$BACKEND_SHA" > "$RUNNER_TEMP/images.env"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: production-state
+          path: |
+            ${{ runner.temp }}/release-manifest.json
+            ${{ runner.temp }}/images.env
+          retention-days: 90
+          if-no-files-found: error

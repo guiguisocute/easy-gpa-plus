@@ -1,0 +1,58 @@
+.demo-workspace {
+  --demo-bar-height: 44px;
+  padding-top: var(--demo-bar-height);
+}
+.demo-mode-bar {
+  position: fixed;
+  inset: 0 0 auto;
+  height: var(--demo-bar-height);
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 24px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--red);
+  color: var(--fg2);
+  font-size: 12px;
+}
+.demo-mode-bar strong { margin-left: 12px; color: var(--fg); }
+.demo-mode-bar button {
+  border: 0;
+  background: var(--red);
+  color: var(--onAccent);
+  padding: 7px 13px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.demo-workspace [data-r='shell'] { min-height: calc(100vh - var(--demo-bar-height)) !important; }
+.demo-workspace [data-r='side'] {
+  top: var(--demo-bar-height) !important;
+  height: calc(100vh - var(--demo-bar-height)) !important;
+}
+.demo-workspace [data-r='top'] { top: var(--demo-bar-height) !important; }
+/* 演示工具条占用独立一行，业务页面的吸顶区仍贴着原顶栏下沿。 */
+.demo-workspace [data-r='scheme-tree'] {
+  top: calc(73px + var(--demo-bar-height));
+  max-height: calc(100dvh - 89px - var(--demo-bar-height));
+}
+.demo-workspace [data-r='reviewsubject'],
+.demo-workspace [data-r='deskside'] { top: calc(57px + var(--demo-bar-height)); }
+.demo-workspace [data-r='deskside'] { max-height: calc(100dvh - 73px - var(--demo-bar-height)); }
+.demo-workspace [data-r='auditnav'],
+.demo-workspace [data-r='reviewsubject'] ~ * [data-r='deskside'] {
+  top: calc(109px + var(--demo-bar-height)) !important;
+}
+.demo-workspace [data-r='reviewsubject'] ~ * [data-r='deskside'] {
+  max-height: calc(100dvh - 125px - var(--demo-bar-height)) !important;
+}
+@container shell (max-width: 1060px) {
+  .demo-workspace [data-r='reviewsubject'] ~ * [data-r='deskside'] {
+    max-height: none !important;
+  }
+}
+@media (max-width: 700px) {
+  .demo-mode-bar { padding: 0 14px; }
+}

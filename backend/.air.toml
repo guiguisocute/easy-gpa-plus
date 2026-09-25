@@ -1,0 +1,15 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+cmd = "go build -o ./tmp/zongce ./cmd/zongce"
+bin = "./tmp/zongce"
+args_bin = ["api"]
+include_ext = ["go", "sql", "toml"]
+exclude_dir = ["tmp", "bin"]
+# 仓库在 WSL ext4 上 fsnotify 原生可用;仅当被迫放 /mnt 时才开 poll(§20.2)
+# poll = true
+# poll_interval = 500
+
+[log]
+main_only = true

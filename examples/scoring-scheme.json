@@ -1,0 +1,2498 @@
+{
+  "schemeName": "综合测评示例方案",
+  "weights": {
+    "major": 0.6,
+    "moral": 0.15,
+    "practice": 0.15,
+    "health": 0.1
+  },
+  "categories": [
+    {
+      "key": "major",
+      "name": "专业素质",
+      "maxTotal": 100,
+      "formula": {
+        "lhs": "总平均分值",
+        "numerator": "∑（各门课程的分数 × 各门课程学分）",
+        "denominator": "∑（各门课程学分）"
+      },
+      "note": "请按本班已发布的评分细则提供证明，由审核人认定。",
+      "baseItems": [],
+      "penaltyItems": [],
+      "items": []
+    },
+    {
+      "key": "moral",
+      "name": "思想道德素质",
+      "maxTotal": 100,
+      "baseItems": [
+        {
+          "key": "moral_base_politics",
+          "name": "坚持四项基本原则，践行社会主义核心价值体系",
+          "full": 15
+        },
+        {
+          "key": "moral_base_law",
+          "name": "遵纪守法，遵守社会公德，爱国爱民爱劳动爱科学爱社会主义",
+          "full": 15
+        },
+        {
+          "key": "moral_base_campus",
+          "name": "遵守《高等学校学生行为准则》与校纪校规，爱校荣校",
+          "full": 15
+        },
+        {
+          "key": "moral_base_collective",
+          "name": "热爱集体、团结同学、尊敬师长、助人为乐，参加集体与公益活动",
+          "full": 15
+        },
+        {
+          "key": "moral_base_edu",
+          "name": "参加形势政策、安全法规、校纪校规、心理健康、廉洁等教育活动",
+          "full": 10
+        }
+      ],
+      "penaltyItems": [
+        {
+          "key": "moral_pen_zero",
+          "name": "违反四项基本原则等严重行为（思想道德素质直接归零）",
+          "per": -100
+        },
+        {
+          "key": "moral_pen_probation",
+          "name": "留校察看处分",
+          "per": -30
+        },
+        {
+          "key": "moral_pen_demerit",
+          "name": "记过处分",
+          "per": -25
+        },
+        {
+          "key": "moral_pen_serious_warning",
+          "name": "严重警告处分",
+          "per": -20
+        },
+        {
+          "key": "moral_pen_warning",
+          "name": "警告处分",
+          "per": -15
+        },
+        {
+          "key": "moral_pen_notice_school",
+          "name": "校级通报批评",
+          "per": -10
+        },
+        {
+          "key": "moral_pen_notice_college",
+          "name": "院级通报批评",
+          "per": -5
+        },
+        {
+          "key": "moral_pen_credit",
+          "name": "恶意拖欠学费等不良诚信记录",
+          "per": -15
+        },
+        {
+          "key": "moral_pen_absence",
+          "name": "考勤缺勤（每次；迟到早退累计 2 次记 1 次；已受处分不重复扣）",
+          "per": -1
+        },
+        {
+          "key": "moral_pen_freshman_exam",
+          "name": "新生校纪校规／安全法治／团员教育考试不及格（每项次）",
+          "per": -5
+        },
+        {
+          "key": "moral_pen_wire",
+          "name": "违章用电私拉电线",
+          "per": -5
+        },
+        {
+          "key": "moral_pen_stove",
+          "name": "使用煤油炉（酒精炉）",
+          "per": -3
+        },
+        {
+          "key": "moral_pen_candle",
+          "name": "点蜡烛",
+          "per": -2
+        },
+        {
+          "key": "moral_pen_facility",
+          "name": "故意污损公共设施、攀折花木",
+          "per": -4
+        },
+        {
+          "key": "moral_pen_disorder",
+          "name": "酗酒、起哄、摔瓶子等扰乱校园秩序",
+          "per": -5
+        },
+        {
+          "key": "moral_pen_appliance",
+          "name": "违规使用电脑、大功率用电器（未受处分）",
+          "per": -3
+        }
+      ],
+      "items": [
+        {
+          "key": "moral_party",
+          "name": "入党积极分子（满一学期）／中共（预备）党员先锋模范作用",
+          "scoreRule": {
+            "type": "free",
+            "min": 0,
+            "max": 5
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        },
+        {
+          "key": "moral_brave",
+          "name": "见义勇为、助人为乐、拾金不昧等受表彰",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "表彰级别"
+            ],
+            "options": [
+              {
+                "label": "国家级表彰",
+                "score": 15
+              },
+              {
+                "label": "省级表彰（含省级以上媒体表扬）",
+                "score": 10
+              },
+              {
+                "label": "校级表彰",
+                "score": 5
+              },
+              {
+                "label": "院级表彰",
+                "score": 2
+              }
+            ]
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        },
+        {
+          "key": "moral_dorm",
+          "name": "文明寝室成员",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "评选级别"
+            ],
+            "options": [
+              {
+                "label": "校级文明寝室",
+                "score": 3
+              },
+              {
+                "label": "院级文明寝室",
+                "score": 2
+              }
+            ]
+          },
+          "evidence": {
+            "required": false,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        },
+        {
+          "key": "moral_blood",
+          "name": "无偿献血",
+          "scoreRule": {
+            "type": "per_unit",
+            "unit": "次",
+            "per": 2
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        },
+        {
+          "key": "moral_marrow",
+          "name": "捐献骨髓",
+          "scoreRule": {
+            "type": "per_unit",
+            "unit": "次",
+            "per": 5
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        },
+        {
+          "key": "moral_cadre",
+          "name": "学生干部任职",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "任职岗位"
+            ],
+            "options": [
+              {
+                "label": "校、院级学生会主席团／党站执行团成员",
+                "score": 10
+              },
+              {
+                "label": "校、院级学生会／党站部长，协会、社团、自管委各部的正、副职",
+                "score": 8
+              },
+              {
+                "label": "班长、团支书、辅导员助理、新生助导员",
+                "score": 8
+              },
+              {
+                "label": "校、院级学生会／党站副部长，协会、社团、自管委各分部正、副部长，支部副书记",
+                "score": 6
+              },
+              {
+                "label": "学生会、协会、社团、自管委干事，支部委员",
+                "score": 4
+              },
+              {
+                "label": "寝室长、班级临时成立的小组组长等",
+                "score": 1
+              }
+            ]
+          },
+          "exclusiveGroup": "moral_cadre",
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。",
+          "activities": []
+        },
+        {
+          "key": "moral_cadre_class",
+          "name": "其他班委任职（班级考评小组认定）",
+          "scoreRule": {
+            "type": "free",
+            "min": 0,
+            "max": 8
+          },
+          "exclusiveGroup": "moral_cadre",
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        },
+        {
+          "key": "moral_organize",
+          "name": "组织各类活动、比赛，或任体育活动教练员（院级组织分）",
+          "scoreRule": {
+            "type": "per_unit",
+            "unit": "次",
+            "per": 1,
+            "cap": 6
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。",
+          "activities": []
+        },
+        {
+          "key": "moral_audience",
+          "name": "受委派参加讲座、比赛、演讲、报告、会议、评比等活动观众",
+          "scoreRule": {
+            "type": "per_unit",
+            "unit": "人次",
+            "per": 0.25,
+            "cap": 2
+          },
+          "evidence": {
+            "required": false,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。",
+          "activities": []
+        },
+        {
+          "key": "moral_news_photo",
+          "name": "校院活动新闻报道拍照",
+          "scoreRule": {
+            "type": "per_unit",
+            "unit": "次",
+            "per": 0.25
+          },
+          "capGroup": {
+            "key": "moral_news",
+            "cap": 5
+          },
+          "evidence": {
+            "required": false,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。",
+          "activities": []
+        },
+        {
+          "key": "moral_news_article",
+          "name": "校院活动新闻报道写稿",
+          "scoreRule": {
+            "type": "per_unit",
+            "unit": "次",
+            "per": 0.5
+          },
+          "capGroup": {
+            "key": "moral_news",
+            "cap": 5
+          },
+          "evidence": {
+            "required": false,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。",
+          "activities": []
+        },
+        {
+          "key": "moral_practice_team",
+          "name": "校、院组织的寒暑期社会实践队（三下乡）",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "队内角色"
+            ],
+            "options": [
+              {
+                "label": "队长",
+                "score": 6
+              },
+              {
+                "label": "副队长",
+                "score": 5.5
+              },
+              {
+                "label": "队员",
+                "score": 5
+              }
+            ]
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。",
+          "activities": []
+        },
+        {
+          "key": "moral_honor",
+          "name": "争先创优、文明评比等活动获表彰",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "表彰级别",
+              "获评等次"
+            ],
+            "options": [
+              {
+                "label": "国家级·一等",
+                "score": 20
+              },
+              {
+                "label": "国家级·二等",
+                "score": 15
+              },
+              {
+                "label": "国家级·三等",
+                "score": 12
+              },
+              {
+                "label": "国家级·其他",
+                "score": 8
+              },
+              {
+                "label": "国家级·参与",
+                "score": 4
+              },
+              {
+                "label": "省级·一等",
+                "score": 10
+              },
+              {
+                "label": "省级·二等",
+                "score": 8
+              },
+              {
+                "label": "省级·三等",
+                "score": 6
+              },
+              {
+                "label": "省级·其他",
+                "score": 4
+              },
+              {
+                "label": "省级·参与",
+                "score": 2
+              },
+              {
+                "label": "校级·一等",
+                "score": 5
+              },
+              {
+                "label": "校级·二等",
+                "score": 4
+              },
+              {
+                "label": "校级·三等",
+                "score": 2
+              },
+              {
+                "label": "校级·其他",
+                "score": 2
+              },
+              {
+                "label": "校级·参与",
+                "score": 1
+              },
+              {
+                "label": "院级·一等",
+                "score": 3
+              },
+              {
+                "label": "院级·二等",
+                "score": 2
+              },
+              {
+                "label": "院级·三等",
+                "score": 1
+              },
+              {
+                "label": "院级·其他",
+                "score": 0.5
+              },
+              {
+                "label": "院级·参与",
+                "score": 0.5
+              }
+            ]
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。",
+          "activities": []
+        },
+        {
+          "key": "moral_volunteer",
+          "name": "青年志愿者服务、社区服务活动（按服务时长）",
+          "scoreRule": {
+            "type": "per_unit",
+            "unit": "小时",
+            "per": 0.25,
+            "cap": 10
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。",
+          "activities": []
+        },
+        {
+          "key": "moral_public_good",
+          "name": "参加其他公益活动表现突出",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "认定情形"
+            ],
+            "options": [
+              {
+                "label": "表现突出",
+                "score": 1
+              }
+            ]
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        }
+      ]
+    },
+    {
+      "key": "practice",
+      "name": "实践创新素质",
+      "maxTotal": 100,
+      "baseItems": [
+        {
+          "key": "practice_base",
+          "name": "参加课外学术科技活动、专业学术竞赛、专业社会实践",
+          "full": 40,
+          "studentClaim": {
+            "minimum": 2,
+            "unit": "项",
+            "evidence": {
+              "required": true,
+              "types": [
+                "pdf",
+                "jpg",
+                "jpeg",
+                "png",
+                "gif",
+                "webp",
+                "heic",
+                "doc",
+                "docx",
+                "xls",
+                "xlsx",
+                "ppt",
+                "pptx",
+                "txt",
+                "csv",
+                "wps",
+                "et",
+                "dps",
+                "zip",
+                "rar",
+                "7z",
+                "mp4"
+              ],
+              "maxMb": 50
+            }
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        }
+      ],
+      "penaltyItems": [],
+      "items": [
+        {
+          "key": "practice_second_major",
+          "name": "修读第二专业（按总平均学分值）",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "总平均学分值"
+            ],
+            "options": [
+              {
+                "label": "总平均学分值 ≥ 90",
+                "score": 10
+              },
+              {
+                "label": "80 ≤ 总平均学分值 < 90",
+                "score": 8
+              },
+              {
+                "label": "60 ≤ 总平均学分值 < 80",
+                "score": 5
+              },
+              {
+                "label": "总平均学分值 < 60",
+                "score": 0
+              }
+            ]
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        },
+        {
+          "key": "practice_contest",
+          "name": "与专业学习相关的学科竞赛获奖",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "竞赛级别与赛事类别",
+              "获奖等次"
+            ],
+            "options": [
+              {
+                "label": "国家级 A1 类·特等",
+                "score": 35
+              },
+              {
+                "label": "国家级 A1 类·一等",
+                "score": 30
+              },
+              {
+                "label": "国家级 A1 类·二等",
+                "score": 20
+              },
+              {
+                "label": "国家级 A1 类·三等",
+                "score": 15
+              },
+              {
+                "label": "国家级 A1 类·其他",
+                "score": 10
+              },
+              {
+                "label": "国家级 A1 类·参与",
+                "score": 1
+              },
+              {
+                "label": "国家级 A2 类·特等",
+                "score": 25
+              },
+              {
+                "label": "国家级 A2 类·一等",
+                "score": 20
+              },
+              {
+                "label": "国家级 A2 类·二等",
+                "score": 15
+              },
+              {
+                "label": "国家级 A2 类·三等",
+                "score": 10
+              },
+              {
+                "label": "国家级 A2 类·其他",
+                "score": 8
+              },
+              {
+                "label": "国家级 A2 类·参与",
+                "score": 1
+              },
+              {
+                "label": "国家级 A3 类·特等",
+                "score": 20
+              },
+              {
+                "label": "国家级 A3 类·一等",
+                "score": 15
+              },
+              {
+                "label": "国家级 A3 类·二等",
+                "score": 10
+              },
+              {
+                "label": "国家级 A3 类·三等",
+                "score": 8
+              },
+              {
+                "label": "国家级 A3 类·其他",
+                "score": 6
+              },
+              {
+                "label": "国家级 A3 类·参与",
+                "score": 1
+              },
+              {
+                "label": "国家级 B 类·特等",
+                "score": 15
+              },
+              {
+                "label": "国家级 B 类·一等",
+                "score": 10
+              },
+              {
+                "label": "国家级 B 类·二等",
+                "score": 8
+              },
+              {
+                "label": "国家级 B 类·三等",
+                "score": 6
+              },
+              {
+                "label": "国家级 B 类·其他",
+                "score": 4
+              },
+              {
+                "label": "国家级 B 类·参与",
+                "score": 1
+              },
+              {
+                "label": "省级 A1 类·特等",
+                "score": 20
+              },
+              {
+                "label": "省级 A1 类·一等",
+                "score": 15
+              },
+              {
+                "label": "省级 A1 类·二等",
+                "score": 12
+              },
+              {
+                "label": "省级 A1 类·三等",
+                "score": 8
+              },
+              {
+                "label": "省级 A1 类·其他",
+                "score": 6
+              },
+              {
+                "label": "省级 A1 类·参与",
+                "score": 1
+              },
+              {
+                "label": "省级 A2 类·特等",
+                "score": 17
+              },
+              {
+                "label": "省级 A2 类·一等",
+                "score": 12
+              },
+              {
+                "label": "省级 A2 类·二等",
+                "score": 8
+              },
+              {
+                "label": "省级 A2 类·三等",
+                "score": 6
+              },
+              {
+                "label": "省级 A2 类·其他",
+                "score": 4
+              },
+              {
+                "label": "省级 A2 类·参与",
+                "score": 1
+              },
+              {
+                "label": "省级 A3 类·特等",
+                "score": 13
+              },
+              {
+                "label": "省级 A3 类·一等",
+                "score": 8
+              },
+              {
+                "label": "省级 A3 类·二等",
+                "score": 6
+              },
+              {
+                "label": "省级 A3 类·三等",
+                "score": 4
+              },
+              {
+                "label": "省级 A3 类·其他",
+                "score": 2
+              },
+              {
+                "label": "省级 A3 类·参与",
+                "score": 1
+              },
+              {
+                "label": "省级 B 类·特等",
+                "score": 11
+              },
+              {
+                "label": "省级 B 类·一等",
+                "score": 6
+              },
+              {
+                "label": "省级 B 类·二等",
+                "score": 4
+              },
+              {
+                "label": "省级 B 类·三等",
+                "score": 2
+              },
+              {
+                "label": "省级 B 类·其他",
+                "score": 1
+              },
+              {
+                "label": "省级 B 类·参与",
+                "score": 1
+              },
+              {
+                "label": "校级·特等",
+                "score": 13
+              },
+              {
+                "label": "校级·一等",
+                "score": 8
+              },
+              {
+                "label": "校级·二等",
+                "score": 6
+              },
+              {
+                "label": "校级·三等",
+                "score": 4
+              },
+              {
+                "label": "校级·其他",
+                "score": 2
+              },
+              {
+                "label": "校级·参与",
+                "score": 1
+              },
+              {
+                "label": "院级·特等",
+                "score": 8
+              },
+              {
+                "label": "院级·一等",
+                "score": 3
+              },
+              {
+                "label": "院级·二等",
+                "score": 2
+              },
+              {
+                "label": "院级·三等",
+                "score": 1
+              },
+              {
+                "label": "院级·其他",
+                "score": 0.5
+              },
+              {
+                "label": "院级·参与",
+                "score": 0.5
+              }
+            ]
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        },
+        {
+          "key": "practice_skill_contest",
+          "name": "其他技能类比赛获奖（含“五个一”、辩论、演讲、征文、教学技能等）",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "比赛级别",
+              "获奖等次"
+            ],
+            "options": [
+              {
+                "label": "全国·特等奖",
+                "score": 20
+              },
+              {
+                "label": "全国·一等奖",
+                "score": 15
+              },
+              {
+                "label": "全国·二等奖",
+                "score": 10
+              },
+              {
+                "label": "全国·三等奖",
+                "score": 8
+              },
+              {
+                "label": "全国·鼓励奖",
+                "score": 1
+              },
+              {
+                "label": "全国·参与奖",
+                "score": 0.5
+              },
+              {
+                "label": "省级·特等奖",
+                "score": 13
+              },
+              {
+                "label": "省级·一等奖",
+                "score": 8
+              },
+              {
+                "label": "省级·二等奖",
+                "score": 6
+              },
+              {
+                "label": "省级·三等奖",
+                "score": 4
+              },
+              {
+                "label": "省级·鼓励奖",
+                "score": 1
+              },
+              {
+                "label": "省级·参与奖",
+                "score": 0.5
+              },
+              {
+                "label": "校级·特等奖",
+                "score": 9
+              },
+              {
+                "label": "校级·一等奖",
+                "score": 4
+              },
+              {
+                "label": "校级·二等奖",
+                "score": 3
+              },
+              {
+                "label": "校级·三等奖",
+                "score": 2
+              },
+              {
+                "label": "校级·鼓励奖",
+                "score": 0.5
+              },
+              {
+                "label": "校级·参与奖",
+                "score": 0.5
+              },
+              {
+                "label": "院级·特等奖",
+                "score": 7
+              },
+              {
+                "label": "院级·一等奖",
+                "score": 2
+              },
+              {
+                "label": "院级·二等奖",
+                "score": 1
+              },
+              {
+                "label": "院级·三等奖",
+                "score": 1
+              },
+              {
+                "label": "院级·鼓励奖",
+                "score": 0.5
+              },
+              {
+                "label": "院级·参与奖",
+                "score": 0.5
+              }
+            ]
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。",
+          "activities": []
+        },
+        {
+          "key": "practice_paper",
+          "name": "发表与所学专业相关的学术论文",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "刊物级别"
+            ],
+            "options": [
+              {
+                "label": "SCI／SSCI／EI／ISTP",
+                "score": 30
+              },
+              {
+                "label": "国家级刊物",
+                "score": 20
+              },
+              {
+                "label": "省级刊物",
+                "score": 15
+              },
+              {
+                "label": "学术论文集（省级以上）",
+                "score": 10
+              }
+            ]
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        },
+        {
+          "key": "practice_research",
+          "name": "科研成果、科技发明与大学生科技创新竞赛",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "成果类型",
+              "级别",
+              "获奖等次"
+            ],
+            "options": [
+              {
+                "label": "国际级·特等",
+                "score": 45,
+                "path": [
+                  "竞赛获奖",
+                  "国际级",
+                  "特等"
+                ]
+              },
+              {
+                "label": "国际级·一等",
+                "score": 40,
+                "path": [
+                  "竞赛获奖",
+                  "国际级",
+                  "一等"
+                ]
+              },
+              {
+                "label": "国际级·二等",
+                "score": 30,
+                "path": [
+                  "竞赛获奖",
+                  "国际级",
+                  "二等"
+                ]
+              },
+              {
+                "label": "国际级·三等",
+                "score": 25,
+                "path": [
+                  "竞赛获奖",
+                  "国际级",
+                  "三等"
+                ]
+              },
+              {
+                "label": "国际级·优秀",
+                "score": 20,
+                "path": [
+                  "竞赛获奖",
+                  "国际级",
+                  "优秀"
+                ]
+              },
+              {
+                "label": "国家级·特等",
+                "score": 35,
+                "path": [
+                  "竞赛获奖",
+                  "国家级",
+                  "特等"
+                ]
+              },
+              {
+                "label": "国家级·一等",
+                "score": 30,
+                "path": [
+                  "竞赛获奖",
+                  "国家级",
+                  "一等"
+                ]
+              },
+              {
+                "label": "国家级·二等",
+                "score": 25,
+                "path": [
+                  "竞赛获奖",
+                  "国家级",
+                  "二等"
+                ]
+              },
+              {
+                "label": "国家级·三等",
+                "score": 20,
+                "path": [
+                  "竞赛获奖",
+                  "国家级",
+                  "三等"
+                ]
+              },
+              {
+                "label": "国家级·优秀",
+                "score": 15,
+                "path": [
+                  "竞赛获奖",
+                  "国家级",
+                  "优秀"
+                ]
+              },
+              {
+                "label": "省级·特等",
+                "score": 25,
+                "path": [
+                  "竞赛获奖",
+                  "省级",
+                  "特等"
+                ]
+              },
+              {
+                "label": "省级·一等",
+                "score": 20,
+                "path": [
+                  "竞赛获奖",
+                  "省级",
+                  "一等"
+                ]
+              },
+              {
+                "label": "省级·二等",
+                "score": 15,
+                "path": [
+                  "竞赛获奖",
+                  "省级",
+                  "二等"
+                ]
+              },
+              {
+                "label": "省级·三等",
+                "score": 10,
+                "path": [
+                  "竞赛获奖",
+                  "省级",
+                  "三等"
+                ]
+              },
+              {
+                "label": "省级·优秀",
+                "score": 8,
+                "path": [
+                  "竞赛获奖",
+                  "省级",
+                  "优秀"
+                ]
+              },
+              {
+                "label": "（市）校级·特等",
+                "score": 20,
+                "path": [
+                  "竞赛获奖",
+                  "（市）校级",
+                  "特等"
+                ]
+              },
+              {
+                "label": "（市）校级·一等",
+                "score": 15,
+                "path": [
+                  "竞赛获奖",
+                  "（市）校级",
+                  "一等"
+                ]
+              },
+              {
+                "label": "（市）校级·二等",
+                "score": 10,
+                "path": [
+                  "竞赛获奖",
+                  "（市）校级",
+                  "二等"
+                ]
+              },
+              {
+                "label": "（市）校级·三等",
+                "score": 5,
+                "path": [
+                  "竞赛获奖",
+                  "（市）校级",
+                  "三等"
+                ]
+              },
+              {
+                "label": "（市）校级·优秀",
+                "score": 3,
+                "path": [
+                  "竞赛获奖",
+                  "（市）校级",
+                  "优秀"
+                ]
+              },
+              {
+                "label": "鉴定成果（前三名）·国际级",
+                "score": 20,
+                "path": [
+                  "鉴定成果（前三名）",
+                  "国际级"
+                ]
+              },
+              {
+                "label": "鉴定成果（前三名）·国家级",
+                "score": 15,
+                "path": [
+                  "鉴定成果（前三名）",
+                  "国家级"
+                ]
+              },
+              {
+                "label": "鉴定成果（前三名）·省级",
+                "score": 10,
+                "path": [
+                  "鉴定成果（前三名）",
+                  "省级"
+                ]
+              },
+              {
+                "label": "鉴定成果（前三名）·（市）校级",
+                "score": 5,
+                "path": [
+                  "鉴定成果（前三名）",
+                  "（市）校级"
+                ]
+              },
+              {
+                "label": "国家发明专利（前三名，每项）",
+                "score": 15,
+                "path": [
+                  "国家发明专利（前三名，每项）"
+                ]
+              }
+            ]
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。",
+          "activities": []
+        },
+        {
+          "key": "practice_project",
+          "name": "科研立项（结题／未结题）",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "项目状态与角色"
+            ],
+            "options": [
+              {
+                "label": "已结题·项目负责人（按院级一等奖）",
+                "score": 3
+              },
+              {
+                "label": "已结题·其他成员（降一级）",
+                "score": 2
+              },
+              {
+                "label": "未结题·参与成员（按参与奖）",
+                "score": 0.5
+              }
+            ]
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        },
+        {
+          "key": "practice_book",
+          "name": "公开正式出版学术、文学、艺术著作",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "著作形式与字数"
+            ],
+            "options": [
+              {
+                "label": "独（合）著 ≥10 万字",
+                "score": 20
+              },
+              {
+                "label": "独（合）著 <10 万字",
+                "score": 8
+              },
+              {
+                "label": "主（参）编 ≥10 万字",
+                "score": 15
+              },
+              {
+                "label": "主（参）编 <5 万字",
+                "score": 12
+              },
+              {
+                "label": "主（参）编 ≥1 万字",
+                "score": 8
+              },
+              {
+                "label": "主（参）编 <1 万字",
+                "score": 5
+              }
+            ]
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        },
+        {
+          "key": "practice_media",
+          "name": "在正式报刊发表文学、艺术、新闻等作品",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "媒体级别",
+              "作品字数"
+            ],
+            "options": [
+              {
+                "label": "国家级权威报刊或新闻媒体·≥1500 字",
+                "score": 15
+              },
+              {
+                "label": "国家级权威报刊或新闻媒体·600–1500 字",
+                "score": 12
+              },
+              {
+                "label": "国家级权威报刊或新闻媒体·<600 字",
+                "score": 8
+              },
+              {
+                "label": "省级重要报纸或新闻媒体·≥1500 字",
+                "score": 12
+              },
+              {
+                "label": "省级重要报纸或新闻媒体·600–1500 字",
+                "score": 8
+              },
+              {
+                "label": "省级重要报纸或新闻媒体·<600 字",
+                "score": 5
+              },
+              {
+                "label": "公开发行的地市级报刊或地方新闻媒体·≥1500 字",
+                "score": 8
+              },
+              {
+                "label": "公开发行的地市级报刊或地方新闻媒体·600–1500 字",
+                "score": 5
+              },
+              {
+                "label": "公开发行的地市级报刊或地方新闻媒体·<600 字",
+                "score": 3
+              },
+              {
+                "label": "学校主办的其他报纸或媒体·≥1500 字",
+                "score": 5
+              },
+              {
+                "label": "学校主办的其他报纸或媒体·600–1500 字",
+                "score": 3
+              },
+              {
+                "label": "学校主办的其他报纸或媒体·<600 字",
+                "score": 2
+              }
+            ]
+          },
+          "capGroup": {
+            "key": "practice_media",
+            "cap": 20
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        },
+        {
+          "key": "practice_newmedia",
+          "name": "网络新媒体上发布视频、照片、海报等作品受表彰",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "发布媒体级别"
+            ],
+            "options": [
+              {
+                "label": "全国影响力评选·第一梯队",
+                "score": 15
+              },
+              {
+                "label": "全国影响力评选·第二梯队",
+                "score": 12
+              },
+              {
+                "label": "全国影响力评选·第三梯队",
+                "score": 8
+              },
+              {
+                "label": "国家级媒体",
+                "score": 15
+              },
+              {
+                "label": "省级媒体",
+                "score": 12
+              },
+              {
+                "label": "地市级媒体",
+                "score": 8
+              },
+              {
+                "label": "学校主办媒体",
+                "score": 5
+              },
+              {
+                "label": "学院主办内部刊物",
+                "score": 3
+              }
+            ]
+          },
+          "capGroup": {
+            "key": "practice_media",
+            "cap": 20
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        },
+        {
+          "key": "practice_cert",
+          "name": "专业技能／职业技能证书",
+          "scoreRule": {
+            "type": "per_unit",
+            "unit": "项",
+            "per": 10,
+            "cap": 20
+          },
+          "capGroup": {
+            "key": "practice_cert",
+            "cap": 20
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        },
+        {
+          "key": "practice_cet",
+          "name": "全国大学英语等级考试通过",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "通过等级"
+            ],
+            "options": [
+              {
+                "label": "六级",
+                "score": 10
+              },
+              {
+                "label": "四级",
+                "score": 5
+              }
+            ]
+          },
+          "exclusiveGroup": "practice_cet",
+          "capGroup": {
+            "key": "practice_cert",
+            "cap": 20
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        }
+      ]
+    },
+    {
+      "key": "health",
+      "name": "身体心理素质",
+      "maxTotal": 100,
+      "baseItems": [
+        {
+          "key": "health_base_psych",
+          "name": "具备良好的心理品质",
+          "full": 15
+        },
+        {
+          "key": "health_base_aesthetic",
+          "name": "具有正确的审美观和高雅的审美情趣",
+          "full": 15
+        },
+        {
+          "key": "health_base_fitness",
+          "name": "积极参加体育锻炼，身体素质良好，卫生习惯良好",
+          "full": 10
+        },
+        {
+          "key": "health_base_second_class",
+          "name": "按第二课堂学分要求参加各项课外活动",
+          "full": 30
+        }
+      ],
+      "penaltyItems": [
+        {
+          "key": "health_pen_fitness_fail",
+          "name": "体育测试不达标或体育课成绩不合格（需补考）",
+          "per": -30
+        }
+      ],
+      "items": [
+        {
+          "key": "health_contest",
+          "name": "文艺、体育、心理类竞赛获奖（按名次或获奖等次）",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "竞赛级别",
+              "名次／获奖等次"
+            ],
+            "options": [
+              {
+                "label": "全国·破纪录",
+                "score": 30
+              },
+              {
+                "label": "全国·第一名",
+                "score": 20
+              },
+              {
+                "label": "全国·第二名",
+                "score": 18
+              },
+              {
+                "label": "全国·一等奖（按第二名）",
+                "score": 18
+              },
+              {
+                "label": "全国·第三名",
+                "score": 16
+              },
+              {
+                "label": "全国·第四名",
+                "score": 14
+              },
+              {
+                "label": "全国·二等奖（按第四名）",
+                "score": 14
+              },
+              {
+                "label": "全国·第五名",
+                "score": 12
+              },
+              {
+                "label": "全国·第六名",
+                "score": 10
+              },
+              {
+                "label": "全国·三等奖（按第六名）",
+                "score": 10
+              },
+              {
+                "label": "全国·第七、八名",
+                "score": 8
+              },
+              {
+                "label": "全国·参与",
+                "score": 5
+              },
+              {
+                "label": "省级·破纪录",
+                "score": 20
+              },
+              {
+                "label": "省级·第一名",
+                "score": 15
+              },
+              {
+                "label": "省级·第二名",
+                "score": 13
+              },
+              {
+                "label": "省级·一等奖（按第二名）",
+                "score": 13
+              },
+              {
+                "label": "省级·第三名",
+                "score": 10
+              },
+              {
+                "label": "省级·第四名",
+                "score": 8
+              },
+              {
+                "label": "省级·二等奖（按第四名）",
+                "score": 8
+              },
+              {
+                "label": "省级·第五名",
+                "score": 7
+              },
+              {
+                "label": "省级·第六名",
+                "score": 6
+              },
+              {
+                "label": "省级·三等奖（按第六名）",
+                "score": 6
+              },
+              {
+                "label": "省级·第七、八名",
+                "score": 5
+              },
+              {
+                "label": "省级·参与",
+                "score": 3
+              },
+              {
+                "label": "校级·破纪录",
+                "score": 15
+              },
+              {
+                "label": "校级·第一名",
+                "score": 10
+              },
+              {
+                "label": "校级·第二名",
+                "score": 8
+              },
+              {
+                "label": "校级·一等奖（按第二名）",
+                "score": 8
+              },
+              {
+                "label": "校级·第三名",
+                "score": 6
+              },
+              {
+                "label": "校级·第四名",
+                "score": 5
+              },
+              {
+                "label": "校级·二等奖（按第四名）",
+                "score": 5
+              },
+              {
+                "label": "校级·第五名",
+                "score": 4
+              },
+              {
+                "label": "校级·第六名",
+                "score": 3
+              },
+              {
+                "label": "校级·三等奖（按第六名）",
+                "score": 3
+              },
+              {
+                "label": "校级·第七、八名",
+                "score": 2
+              },
+              {
+                "label": "校级·参与",
+                "score": 1
+              },
+              {
+                "label": "院级·破纪录",
+                "score": 5
+              },
+              {
+                "label": "院级·第一名",
+                "score": 4
+              },
+              {
+                "label": "院级·第二名",
+                "score": 3
+              },
+              {
+                "label": "院级·一等奖（按第二名）",
+                "score": 3
+              },
+              {
+                "label": "院级·第三名",
+                "score": 2
+              },
+              {
+                "label": "院级·第四名",
+                "score": 2
+              },
+              {
+                "label": "院级·二等奖（按第四名）",
+                "score": 2
+              },
+              {
+                "label": "院级·第五名",
+                "score": 2
+              },
+              {
+                "label": "院级·第六名",
+                "score": 2
+              },
+              {
+                "label": "院级·三等奖（按第六名）",
+                "score": 2
+              },
+              {
+                "label": "院级·第七、八名",
+                "score": 1
+              },
+              {
+                "label": "院级·参与",
+                "score": 1
+              }
+            ]
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。",
+          "activities": []
+        },
+        {
+          "key": "health_performance",
+          "name": "参加院级及以上非竞赛性质的文艺演出",
+          "scoreRule": {
+            "type": "enum",
+            "levels": [
+              "演出级别"
+            ],
+            "options": [
+              {
+                "label": "全国（按第六名标准）",
+                "score": 10
+              },
+              {
+                "label": "省级（按第六名标准）",
+                "score": 6
+              },
+              {
+                "label": "校级（按第六名标准）",
+                "score": 3
+              },
+              {
+                "label": "院级（按第六名标准）",
+                "score": 2
+              }
+            ]
+          },
+          "capGroup": {
+            "key": "health_performance",
+            "cap": 10
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。"
+        },
+        {
+          "key": "health_sports_conversion",
+          "name": "大型体育活动参与／带训折算（跨大项）",
+          "scoreRule": {
+            "type": "free",
+            "min": 0,
+            "max": 10
+          },
+          "evidence": {
+            "required": true,
+            "types": [
+              "pdf",
+              "jpg",
+              "jpeg",
+              "png",
+              "gif",
+              "webp",
+              "heic",
+              "doc",
+              "docx",
+              "xls",
+              "xlsx",
+              "ppt",
+              "pptx",
+              "txt",
+              "csv",
+              "wps",
+              "et",
+              "dps",
+              "zip",
+              "rar",
+              "7z",
+              "mp4"
+            ],
+            "maxMb": 50
+          },
+          "note": "请按本班已发布的评分细则提供证明，由审核人认定。",
+          "activities": []
+        }
+      ]
+    }
+  ]
+}

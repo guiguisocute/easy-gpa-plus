@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新的整表终审任务 · EasyGPA Plus</title>
+</head>
+<body style="margin:0;padding:0;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',system-ui,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding:40px 16px;background:#fafafa;"><tr><td align="center">
+<table width="560" cellpadding="0" cellspacing="0" border="0" style="background:#fff;border:1px solid #e3e3e3;">
+    <tr><td style="padding:22px 36px;border-bottom:1px solid #efefef;font-size:13px;font-weight:600;color:#0a0a0a;">EasyGPA Plus</td></tr>
+    <tr><td style="padding:36px;">
+        <p style="margin:0 0 14px;font:500 10px Consolas,monospace;letter-spacing:.2em;color:#8e8e8e;">FINAL SCORECARD REVIEW</p>
+        <h1 style="margin:0 0 10px;font-size:28px;line-height:1.15;color:#0a0a0a;">新的整表终审任务</h1>
+        <p style="margin:0 0 24px;font-size:13.5px;line-height:1.7;color:#575757;">你好 {{name}}，你收到了一项整表终审任务。它与前面的单项材料初审不同：请从完整计分表、归类和重复计分等维度独立复核。</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #efefef;border-bottom:1px solid #efefef;">
+            <tr><td style="padding:18px 0;"><p style="margin:0 0 5px;font-size:12px;color:#8e8e8e;">匿名任务编号</p><p style="margin:0;font-size:20px;font-weight:600;color:#0a0a0a;">#{{assignment_id}}</p></td></tr>
+            <tr><td width="50%" style="padding:0 0 18px;"><p style="margin:0 0 5px;font-size:12px;color:#8e8e8e;">分配时间</p><p style="margin:0;font-size:14px;color:#0a0a0a;">{{assigned_at}}</p></td></tr>
+            <tr><td width="50%" style="padding:0 0 18px;"><p style="margin:0 0 5px;font-size:12px;color:#8e8e8e;">建议完成时间</p><p style="margin:0;font-size:14px;color:#d6001c;font-weight:600;">{{due_at}}</p></td></tr>
+        </table>
+        <p style="margin:24px 0 0;font-size:13px;line-height:1.7;color:#575757;">请只依据工作台提供的匿名快照作出判断，不要尝试从其他渠道识别被审人。发现问题时按终审流程提交异议或归类建议。</p>
+        <p style="margin:28px 0 0;text-align:center;"><a href="https://gpa.example.org/" style="display:inline-block;padding:12px 28px;background:#d6001c;color:#fff;text-decoration:none;font-size:14px;font-weight:600;">进入终审工作台</a></p>
+    </td></tr>
+    <tr><td style="padding:20px 36px 28px;border-top:1px solid #efefef;font-size:12px;color:#8e8e8e;">{{class_name}} · https://gpa.example.org</td></tr>
+</table></td></tr></table>
+</body>
+</html>

@@ -1,0 +1,29 @@
+# 行尾唯一事实来源(配合 core.autocrlf=false 使用,见设计文档 §20.2)
+* text=auto eol=lf
+
+*.go       text eol=lf
+*.sql      text eol=lf
+*.sh       text eol=lf
+*.ts       text eol=lf
+*.tsx      text eol=lf
+*.js       text eol=lf
+*.jsx      text eol=lf
+*.css      text eol=lf
+*.html     text eol=lf
+*.json     text eol=lf
+*.yml      text eol=lf
+*.yaml     text eol=lf
+*.toml     text eol=lf
+*.md       text eol=lf
+Makefile   text eol=lf
+Dockerfile text eol=lf
+
+*.bat      text eol=crlf
+*.cmd      text eol=crlf
+*.ps1      text eol=crlf
+
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.ico      binary
+*.woff2    binary
