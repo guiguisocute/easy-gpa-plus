@@ -7,19 +7,19 @@ import { authApi } from '@/api/queries'
 import { useApp } from '@/stores/app'
 import type { User } from '@/lib/types'
 import { db, DEMO_PASSWORD, resetStore } from './db'
+import { startCentralizedDemo } from './governance'
 import DemoHint from './Hint'
 import './workspace.css'
 
+function currentMode(): ClassMode {
+  const chosen = db().demoMode ?? (db().governance?.mode === 'collective' ? 'collective' : null)
+  if (chosen) return chosen
+  startCentralizedDemo()
+  return 'centralized'
+}
+
 export default function DemoWorkspace() {
-  const [mode, setMode] = useState<ClassMode | null>(
-    () =>
-      db().demoMode ??
-      (db().governance?.mode === 'collective'
-        ? 'collective'
-        : db().governance?.version
-          ? 'centralized'
-          : null),
-  )
+  const [mode, setMode] = useState<ClassMode>(currentMode)
   const [pending, setPending] = useState(false),
     [error, setError] = useState('')
   const [choosing, setChoosing] = useState(false)
@@ -34,11 +34,9 @@ export default function DemoWorkspace() {
     setError('')
     try {
       // 演示切换重新载入独立示例，不修改真实班级的模式选择规则。
-      if (mode) {
-        queryClient.clear()
-        useApp.getState().signOut()
-        resetStore()
-      }
+      queryClient.clear()
+      useApp.getState().signOut()
+      resetStore()
       const session = await authApi.login('20240003', DEMO_PASSWORD)
       setAccessToken(session.access_token)
       await api.post('/governance/demo', { mode: value })
@@ -53,12 +51,12 @@ export default function DemoWorkspace() {
       setPending(false)
     }
   }
-  if (!mode || choosing)
+  if (choosing)
     return (
       <ModeChoice
         demo
-        demoCurrentMode={mode ?? undefined}
-        onCancel={mode ? () => { setError(''); setChoosing(false) } : undefined}
+        demoCurrentMode={mode}
+        onCancel={() => { setError(''); setChoosing(false) }}
         onChoose={(value) => void choose(value)}
         pending={pending}
         error={error}

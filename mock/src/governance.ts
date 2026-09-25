@@ -1,5 +1,5 @@
 // Local demo state only. No request from this module reaches a production API.
-import { db, nid, nowIso, userById, DEMO_PASSWORD, type DemoUser } from './db'
+import { db, nid, nowIso, persist, userById, DEMO_PASSWORD, type DemoUser } from './db'
 import { fail } from './errors'
 import type { GovernanceProposal, GovernanceState } from '@/api/governance'
 import type { Evidence, RuleSnapshot } from '@/api/types'
@@ -97,6 +97,15 @@ const candidate = (opinion: Opinion) =>
   ])
 export function governanceMode() {
   return state().mode
+}
+/* 演示站首次进入直接落在普通模式的登录页，不再先弹模式选择。
+   写入的状态与初始化班管「选择普通模式」相同，共治模式仍从顶部入口进入。 */
+export function startCentralizedDemo() {
+  const s = state()
+  if (db().demoMode || s.version > 0) return
+  db().demoMode = 'centralized'
+  s.version = 1
+  persist()
 }
 export function governanceHelper(
   method: string,
@@ -514,9 +523,11 @@ export async function mockGovernance(
     if (u.role !== 'class_admin') fail(403, 'forbidden', '首次配置由班级管理员完成')
     if (db().demoMode || s.version > 0) fail(409, 'mode_chosen', '本次演示已选择工作方式；重置演示后才能重新选择')
     if (!['centralized', 'collective'].includes(String(b.mode))) fail(422, 'invalid_mode', '请选择工作方式')
-    db().demoMode = b.mode as 'centralized' | 'collective'
-    if (b.mode === 'collective') return seedDemo(u)
-    s.version = 1
+    if (b.mode === 'collective') {
+      db().demoMode = 'collective'
+      return seedDemo(u)
+    }
+    startCentralizedDemo()
     return { notice: '已进入普通模式，保留原有角色分工' }
   }
   if (method === 'POST' && path === '/governance/demo/advance') {

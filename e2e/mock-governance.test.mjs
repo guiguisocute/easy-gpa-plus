@@ -95,6 +95,18 @@ test('demo mode is chosen once by the initializer and cannot contaminate an ordi
   assert.equal((await call('GET','/governance')).config.mode,'centralized')
 })
 
+test('a fresh demo opens in ordinary mode without the choice page, and stays ordinary until reset',async()=>{
+  const {startCentralizedDemo}=await server.ssrLoadModule(path.join(root,'mock/src/governance.ts'))
+  startCentralizedDemo()
+  assert.equal(database.db().demoMode,'centralized')
+  // version 0 would send the class admin to the first-time mode choice after login.
+  assert.equal((await call('GET','/governance')).config.version,1)
+  await assert.rejects(()=>call('POST','/governance/demo',{mode:'collective'}),e=>e.status===409)
+  database.resetStore()
+  await call('POST','/governance/demo',{mode:'collective'})
+  assert.equal((await call('GET','/governance')).config.mode,'collective')
+})
+
 test('ordinary members cannot choose demo mode; collective mode has no role-switch endpoint',async()=>{
   const student=(await handle('POST','/auth/login',{account:'20240001',password:database.DEMO_PASSWORD})).access_token
   await assert.rejects(()=>handle('POST','/governance/demo',{mode:'collective'},student),e=>e.status===403)

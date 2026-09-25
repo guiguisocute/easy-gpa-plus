@@ -119,7 +119,7 @@ function CollectiveHint({onHide}:{onHide:()=>void}) {
         else {const session=await authApi.login('20240003',DEMO_PASSWORD);setAccessToken(session.access_token);useApp.getState().setUser(session.user as unknown as User);useApp.getState().go('govHome')}
       } catch(e) {say(e instanceof Error?e.message:'操作失败')} finally {setPending(false)}
     }}>{user?'推进演示时间':'返回共治工作台'}</button>
-    <button type="button" onClick={resetDemo} style={{...resetBtn,marginTop:8,width:'100%'}}>重置演示 · 重新选择</button>
+    <button type="button" onClick={resetDemo} style={{...resetBtn,marginTop:8,width:'100%'}}>重置演示 · 回到普通模式</button>
     <a href="/source.tar.gz" download style={{display:'block',marginTop:8,fontSize:11,color:'var(--fg3)'}}>AGPL-3.0 · 演示站源码</a>
   </aside>
 }
