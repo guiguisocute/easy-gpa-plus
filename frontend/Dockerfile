@@ -1,4 +1,5 @@
-FROM node:24-alpine AS build
+# 静态产物与 CPU 架构无关，构建阶段固定在构建机架构上，多架构镜像只在最后一层区分。
+FROM --platform=$BUILDPLATFORM node:24-alpine AS build
 
 WORKDIR /src/frontend
 COPY frontend/package.json frontend/package-lock.json ./

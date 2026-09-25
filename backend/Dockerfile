@@ -1,13 +1,17 @@
 # 多阶段构建：同一镜像承载 API、迁移与全部 Worker。
-FROM golang:1.26.6-alpine AS build
+# 编译阶段固定在构建机架构上交叉编译，多架构镜像不必在模拟器里跑 go build。
+FROM --platform=$BUILDPLATFORM golang:1.26.6-alpine AS build
 WORKDIR /src/backend
 COPY backend/go.mod backend/go.sum* ./
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY backend/ .
 ARG VERSION=dev
+ARG TARGETOS
+ARG TARGETARCH
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o /out/zongce ./cmd/zongce
+    CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o /out/zongce ./cmd/zongce
 
 FROM alpine:3.22 AS runtime-base
 RUN apk add --no-cache ca-certificates poppler-utils antiword postgresql-client tzdata \
