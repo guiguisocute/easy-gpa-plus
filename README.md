@@ -10,7 +10,7 @@
 
 **开源 · 自托管 · 多班级 · 可配置评分规则**
 
-[**文档站**](https://easygpa.guiguisocute.com) · [在线体验](https://easygpamock.guiguisocute.com) · [自托管](https://easygpa.guiguisocute.com/deploy/self-hosting) · [参与开发](CONTRIBUTING.md)
+[**文档站**](https://easygpa.guiguisocute.com) · [在线体验](https://easygpa-demo.guiguisocute.com) · [自托管](https://easygpa.guiguisocute.com/deploy/self-hosting) · [参与开发](CONTRIBUTING.md)
 
 </div>
 
