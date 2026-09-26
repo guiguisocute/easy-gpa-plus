@@ -14,7 +14,8 @@
 
 import type { ReactNode } from 'react'
 import { RichText } from '@/components/Markdown'
-import { TierMatrix, wantsMatrix, type EnumRule } from '@/components/TierMatrix'
+import { TierMatrix } from '@/components/TierMatrix'
+import { wantsMatrix, type EnumRule } from '@/lib/tierMatrix'
 import { ActivityTable } from '@/components/ActivityTable'
 import { scoreBounds } from '@/lib/claim'
 import { itemGuideMarkdown } from '@/lib/itemGuide'

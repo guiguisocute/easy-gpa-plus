@@ -60,6 +60,8 @@ func NewAuditedMailer(next Mailer, pool *pgxpool.Pool) (*AuditedMailer, error) {
 }
 
 func (m *AuditedMailer) Send(ctx context.Context, msg Message) (string, error) {
+	next, provider, configErr := snapshotDelivery(ctx, m.next)
+	msg.provider = provider
 	attempt, err := m.recorder.Start(ctx, msg)
 	if err != nil {
 		return "", fmt.Errorf("reserve mail delivery: %w", err)
@@ -71,7 +73,13 @@ func (m *AuditedMailer) Send(ctx context.Context, msg Message) (string, error) {
 		slog.Error("mail delivery outcome needs reconciliation", "delivery_id", attempt.ID, "event_id", msg.EventID)
 		return "", events.DeferObserved(time.Minute, "邮件投递结果待确认，已暂停重复发送")
 	}
-	providerID, sendErr := m.next.Send(ctx, msg)
+	var providerID string
+	var sendErr error
+	if configErr != nil {
+		sendErr = &NotSubmittedError{Err: configErr}
+	} else {
+		providerID, sendErr = next.Send(ctx, msg)
+	}
 	// A client disconnect must not erase the outcome of an already submitted mail.
 	recordCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
 	defer cancel()
@@ -102,7 +110,33 @@ func (m *AuditedMailer) Ready(ctx context.Context) error {
 
 // Synchronous mail rejected before a provider call remains visible to operators.
 func (m *AuditedMailer) RecordSuppressed(ctx context.Context, msg Message, reason error) error {
+	_, msg.provider, _ = snapshotDelivery(ctx, m.next)
 	return m.recorder.Suppress(ctx, msg, reason)
+}
+
+// Freeze the selected provider before reserving a delivery, so a hot reload
+// cannot label one provider's attempt as another provider's receipt. Keep the
+// recipient suppression check around the selected sender.
+func snapshotDelivery(ctx context.Context, next Mailer) (Mailer, string, error) {
+	switch m := next.(type) {
+	case *RuntimeSESMailer:
+		resolved, err := m.resolve(ctx)
+		if err != nil {
+			return nil, "unknown", err
+		}
+		return snapshotDelivery(ctx, resolved)
+	case *SuppressionMailer:
+		resolved, provider, err := snapshotDelivery(ctx, m.next)
+		return &SuppressionMailer{next: resolved, pool: m.pool}, provider, err
+	case *SMTPMailer:
+		return m, "smtp", nil
+	case *AliyunMailer:
+		return m, "aliyun_dm", nil
+	case *ResendMailer:
+		return m, "resend", nil
+	default:
+		return next, "tencent_ses", nil
+	}
 }
 
 type postgresDeliveryRecorder struct{ pool *pgxpool.Pool }
@@ -115,11 +149,24 @@ func (r postgresDeliveryRecorder) Lookup(ctx context.Context, msg Message) (deli
 
 func (r postgresDeliveryRecorder) Start(ctx context.Context, msg Message) (deliveryAttempt, error) {
 	var result deliveryAttempt
-	err := r.pool.QueryRow(ctx, `SELECT delivery_id,delivery_status,message_id
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return result, err
+	}
+	defer tx.Rollback(context.Background())
+	err = tx.QueryRow(ctx, `SELECT delivery_id,delivery_status,message_id
 	  FROM ops_start_mail_delivery(NULLIF($1,0),NULLIF($2,'')::uuid,$3,$4)`,
 		msg.ClassID, msg.EventID, strings.ToLower(strings.TrimSpace(msg.To)), msg.Template).
 		Scan(&result.ID, &result.Status, &result.ProviderID)
-	return result, err
+	if err != nil {
+		return result, err
+	}
+	if result.Status == "new" && msg.provider != "" {
+		if _, err = tx.Exec(ctx, `UPDATE mail_delivery SET provider=$2 WHERE id=$1`, result.ID, msg.provider); err != nil {
+			return result, err
+		}
+	}
+	return result, tx.Commit(ctx)
 }
 
 func (r postgresDeliveryRecorder) Finish(ctx context.Context, id int64, providerID string, sendErr error) error {
@@ -181,6 +228,10 @@ func definitelyNotSubmitted(err error) bool {
 	var local *NotSubmittedError
 	if errors.As(err, &local) {
 		return true
+	}
+	var provider *ProviderFailure
+	if errors.As(err, &provider) {
+		return provider.Rejected
 	}
 	var coded interface{ GetCode() string }
 	if !errors.As(err, &coded) {

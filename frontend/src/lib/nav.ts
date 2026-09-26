@@ -69,6 +69,8 @@ export interface NavEntry {
   preparationOnly?: boolean
   /** 侧栏分组标题。不写的（运维）整份表排成一组，标题取 NAV_LABEL。 */
   group?: string
+  /** Stable identity for explicitly grouped navigation; independent of labels. */
+  groupId?: string
   /* 不进侧栏列表的三种去处：account 收进底部账号菜单（三个角色都有账号设置），
      primary 是那个红按钮、hidden 只能从别的页面跳进来（都只有学生用）。
      页面本身照常存在（?v= 直达、Agent 跳转、后端 agentcontext 都不受影响），
@@ -154,16 +156,16 @@ export const NAV: Record<Role, NavEntry[]> = {
     ACCOUNT_ENTRY,
   ],
   ops: [
-    { view: 'opsInstances', label: '班级与班管', en: 'TENANTS', desc: '开启班级 · 任命班管 · 停用班级', d1: 'M4 6h7v12H4z', d2: 'M13 10h7v8h-7' },
-    { view: 'opsTemplates', label: '模板库', en: 'TEMPLATES', desc: '模板上架与下架', d1: 'M5 4h14v5H5z', d2: 'M5 13h14v7H5z' },
-    { view: 'opsAgent', label: 'Agent 配置', en: 'AGENT CONFIG', desc: '模型路由 · 知识库 · 用量上限', d1: 'M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z', d2: 'M18.5 15.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z' },
-    { view: 'opsMail', label: '邮件与通知', en: 'MAIL & NOTIFY', desc: '供应商 · 密钥 · 域名 · 限流 · 投递', d1: 'M3 6h18v12H3z', d2: 'M3 7l9 6 9-6' },
-    { view: 'opsJobs', label: '队列与任务', en: 'QUEUES & JOBS', desc: '积压 · 死信重投 · 心跳 · 定时任务', d1: 'M4 6h16M4 12h16M4 18h16', d2: '' },
-    { view: 'opsBackup', label: '备份与恢复', en: 'BACKUP', desc: '备份计划 · 保留期 · 恢复演练', d1: 'M4 7h16v13H4z', d2: 'M9 12h6M12 9v6' },
-    { view: 'opsFlags', label: '开关与阈值', en: 'FLAGS & LIMITS', desc: '维护模式 · 注册 · 上传 · 并发', d1: 'M6 8h12M6 16h12', d2: 'M9 5v6M15 13v6' },
-    { view: 'opsHealth', label: '组件健康', en: 'HEALTH', desc: 'api / pg / redis / garage / worker', d1: 'M3 12h4l2 5 3-11 2 6h7', d2: '' },
-    { view: 'opsDeploy', label: '部署与版本', en: 'DEPLOY', desc: '镜像 tag · 迁移版本 · 备份', d1: 'M12 3l8 4v10l-8 4-8-4V7z', d2: 'M12 12v9' },
-    { view: 'opsAudit', label: '平台审计', en: 'PLATFORM AUDIT', desc: '只记资源操作 · 不碰业务数据', d1: 'M4 4h16v16H4z', d2: 'M8 9h8M8 13h5' },
+    { view: 'opsInstances', label: '班级与班管', en: 'TENANTS', desc: '开启班级 · 任命班管 · 停用班级', d1: 'M4 6h7v12H4z', d2: 'M13 10h7v8h-7', group: '日常运营', groupId: 'ops-operations' },
+    { view: 'opsTemplates', label: '模板库', en: 'TEMPLATES', desc: '模板上架与下架', d1: 'M5 4h14v5H5z', d2: 'M5 13h14v7H5z', group: '日常运营', groupId: 'ops-operations' },
+    { view: 'opsMail', label: '邮件与通知', en: 'MAIL & NOTIFY', desc: '发信通道 · 通知策略 · 投递日志', d1: 'M3 6h18v12H3z', d2: 'M3 7l9 6 9-6', group: '平台能力', groupId: 'ops-capabilities' },
+    { view: 'opsAgent', label: 'Agent 与知识库', en: 'AGENT CONFIG', desc: '模型路由 · 知识库 · 用量上限', d1: 'M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z', d2: 'M18.5 15.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z', group: '平台能力', groupId: 'ops-capabilities' },
+    { view: 'opsFlags', label: '开关与阈值', en: 'FLAGS & LIMITS', desc: '访问控制 · 容量 · 频率限制 · 品牌', d1: 'M6 8h12M6 16h12', d2: 'M9 5v6M15 13v6', group: '平台能力', groupId: 'ops-capabilities' },
+    { view: 'opsHealth', label: '组件健康', en: 'HEALTH', desc: '服务状态 · 存储连接 · 运行环境', d1: 'M3 12h4l2 5 3-11 2 6h7', d2: '', group: '系统维护', groupId: 'ops-maintenance' },
+    { view: 'opsJobs', label: '队列与任务', en: 'QUEUES & JOBS', desc: '积压 · 失败重投 · 心跳 · 定时任务', d1: 'M4 6h16M4 12h16M4 18h16', d2: '', group: '系统维护', groupId: 'ops-maintenance' },
+    { view: 'opsBackup', label: '备份与恢复', en: 'BACKUP', desc: '备份计划 · 远程副本 · 恢复演练', d1: 'M4 7h16v13H4z', d2: 'M9 12h6M12 9v6', group: '系统维护', groupId: 'ops-maintenance' },
+    { view: 'opsDeploy', label: '部署与版本', en: 'DEPLOY', desc: '版本 · 连接 · 会话 · 部署配置', d1: 'M12 3l8 4v10l-8 4-8-4V7z', d2: 'M12 12v9', group: '系统维护', groupId: 'ops-maintenance' },
+    { view: 'opsAudit', label: '平台审计', en: 'PLATFORM AUDIT', desc: '资源操作 · 变更留痕', d1: 'M4 4h16v16H4z', d2: 'M8 9h8M8 13h5', group: '系统维护', groupId: 'ops-maintenance' },
   ],
 }
 
@@ -227,14 +229,14 @@ export function navEntry(role: Role, view: View): NavEntry {
 }
 
 /** 侧栏列表：按 group 分段，保持表里的先后顺序。没写 group 的角色整份排成 fallback 一段。 */
-export function navGroups(entries: NavEntry[], fallback: string): { id: View; title: string; entries: NavEntry[] }[] {
-  const groups: { id: View; title: string; entries: NavEntry[] }[] = []
+export function navGroups(entries: NavEntry[], fallback: string): { id: string; title: string; entries: NavEntry[] }[] {
+  const groups: { id: string; title: string; entries: NavEntry[] }[] = []
   for (const entry of entries) {
     if (entry.sidebar) continue
     const title = entry.group ?? fallback
     const last = groups.at(-1)
-    if (last && last.title === title) last.entries.push(entry)
-    else groups.push({ id: entry.view, title, entries: [entry] })
+    if (last && last.title === title && (!entry.groupId || last.id === entry.groupId)) last.entries.push(entry)
+    else groups.push({ id: entry.groupId ?? entry.view, title, entries: [entry] })
   }
   return groups
 }

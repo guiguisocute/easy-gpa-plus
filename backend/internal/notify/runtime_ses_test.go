@@ -51,14 +51,14 @@ func TestRuntimeSESFallsBackWhenDatabaseHasNoChannel(t *testing.T) {
 	}
 }
 
-func TestRuntimeSESFallsBackDuringSettingsOutage(t *testing.T) {
+func TestRuntimeSESDoesNotSwitchProviderDuringSettingsOutage(t *testing.T) {
 	fallback := completeSESConfig()
 	mailer, err := NewRuntimeSESMailer(stubMailSettings{err: context.DeadlineExceeded}, nil, fallback)
 	if err != nil {
 		t.Fatal(err)
 	}
 	cfg, err := mailer.effective(context.Background())
-	if err != nil || cfg.SecretKey != fallback.SecretKey {
+	if err == nil || cfg.SecretKey != "" {
 		t.Fatalf("effective() = %#v, %v", cfg, err)
 	}
 }
@@ -89,5 +89,43 @@ func TestRuntimeSESConstructorRejectsPartialEnvironmentConfig(t *testing.T) {
 	_, err := NewRuntimeSESMailer(nil, nil, SESConfig{Region: "ap-guangzhou", SecretID: "only-id"})
 	if err == nil {
 		t.Fatal("partial environment config was accepted")
+	}
+}
+
+func TestDeliverySnapshotPreservesProviderAcrossHotReload(t *testing.T) {
+	cipher, err := opsconfig.CipherFromKey(strings.Repeat("k", 32))
+	if err != nil {
+		t.Fatal(err)
+	}
+	key, err := cipher.Seal("fixture-resend-key")
+	if err != nil {
+		t.Fatal(err)
+	}
+	source := &queueTestSettings{mail: opsconfig.DefaultMail()}
+	source.mail.Provider, source.mail.SESFrom, source.mail.ResendAPIKey = "resend", "sender@example.org", key
+	runtime, err := NewRuntimeSESMailer(source, cipher, SESConfig{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	before, provider, err := snapshotDelivery(t.Context(), NewSuppressionMailer(runtime, nil))
+	if err != nil || provider != "resend" {
+		t.Fatalf("snapshot provider=%q err=%v", provider, err)
+	}
+	first := before.(*SuppressionMailer).next
+	if _, ok := first.(*ResendMailer); !ok {
+		t.Fatal("snapshot lost Resend sender")
+	}
+	// Editing the shared runtime after reservation must affect future sends,
+	// while the already reserved attempt keeps its original provider identity.
+	source.mail.Provider, source.mail.SMTPHost = "smtp", "smtp.example.org"
+	after, provider, err := snapshotDelivery(t.Context(), runtime)
+	if err != nil || provider != "smtp" {
+		t.Fatalf("reloaded provider=%q err=%v", provider, err)
+	}
+	if _, ok := after.(*SMTPMailer); !ok || before.(*SuppressionMailer).next != first {
+		t.Fatal("hot reload changed the reserved sender")
+	}
+	if err := runtime.SyncFeedback(t.Context(), nil); err != nil {
+		t.Fatalf("non-Tencent channel attempted to access Tencent feedback: %v", err)
 	}
 }

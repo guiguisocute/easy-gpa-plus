@@ -10,8 +10,8 @@ const mockClient = path.resolve(mockRoot, 'src/client.ts')
 const mockMain = path.resolve(mockRoot, 'src/main.tsx')
 const require = createRequire(path.join(frontendRoot, 'package.json'))
 
-const { defineConfig, searchForWorkspaceRoot } = (await import(pathToFileURL(require.resolve('vite')).href)) as typeof import('vite')
-const { default: react } = (await import(pathToFileURL(require.resolve('@vitejs/plugin-react')).href)) as {
+const { defineConfig, searchForWorkspaceRoot } = (await import(/* @vite-ignore */ pathToFileURL(require.resolve('vite')).href)) as typeof import('vite')
+const { default: react } = (await import(/* @vite-ignore */ pathToFileURL(require.resolve('@vitejs/plugin-react')).href)) as {
   default: typeof import('@vitejs/plugin-react').default
 }
 
@@ -34,8 +34,15 @@ function mockRewritePlugin() {
       if (isMain(resolved.id)) return mockMain
       return null
     },
-    transformIndexHtml(html: string) {
-      return html.replace('<title>综测统计平台</title>', '<title>综测统计平台（演示）</title>')
+    transformIndexHtml: {
+      order: 'pre' as const,
+      handler(html: string) {
+        // Fast Refresh imports a module by its real path. Give the browser the
+        // same entry URL so /src/main.tsx and /@fs/.../main.tsx cannot mount two roots.
+        const entry = '/@fs/' + mockMain.replace(/\\/g, '/').replace(/^\//, '')
+        return html.replace('src="/src/main.tsx"', `src="${entry}"`)
+          .replace('<title>EasyGPA Plus · 综合测评</title>', '<title>EasyGPA Plus · 综合测评（演示）</title>')
+      },
     },
     closeBundle() {
       const dist = path.resolve(mockRoot, 'dist')

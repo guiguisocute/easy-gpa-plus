@@ -12,6 +12,7 @@ func (e *NotSubmittedError) Unwrap() error { return e.Err }
 
 type Message struct {
 	// Delivery metadata is stored separately from rendered mail content.
+	provider string // Selected once by the audited delivery pipeline.
 	ClassID  int64
 	EventID  string
 	To       string

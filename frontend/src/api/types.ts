@@ -1641,6 +1641,8 @@ export interface AvailableTemplate {
   createdAt: string
 }
 
+export type MailProvider = 'tencent_ses' | 'smtp' | 'aliyun_dm' | 'resend'
+
 export interface MailConfig {
   notificationStats?: { suppressedRecipients: number; pendingBatches: number; failedBatches: number; lastFeedbackAt: string | null }
   config: {
@@ -1654,12 +1656,16 @@ export interface MailConfig {
     perDay?: number
     quietStart?: string
     quietEnd?: string
-    /** 腾讯云 SES API 通道。全部留空表示沿用部署环境变量，凭据永远不会下发。 */
+    /** 通用发件设置沿用原字段名；所有通道凭据永远不会下发。 */
     sesRegion?: string
     sesFrom?: string
     sesFromName?: string
     sesReplyTo?: string
     sesTemplateIds?: Record<string, number>
+    smtpHost?: string
+    smtpPort?: number
+    smtpSecurity?: 'starttls' | 'tls'
+    aliyunRegion?: string
   }
   activeProvider: string
   /** 'database' 表示通道来自本页配置，'environment' 表示来自部署 Secret。 */
@@ -1667,6 +1673,15 @@ export interface MailConfig {
   /** 只说明凭据是否保存过，不回显内容。 */
   sesSecretIdSet?: boolean
   sesSecretKeySet?: boolean
+  smtpUsernameSet?: boolean
+  smtpPasswordSet?: boolean
+  aliyunAccessKeyIdSet?: boolean
+  aliyunAccessKeySecretSet?: boolean
+  resendApiKeySet?: boolean
+  configured?: boolean
+  configurationError?: string
+  restartRequired?: boolean
+  feedbackSupported?: boolean
   /** 服务端配了 MAIL_SECRET_KEY 才能保存 API 凭据。 */
   secretKeyReady?: boolean
 }
@@ -2313,6 +2328,16 @@ export interface DeployState {
   databaseRole: { name: string; superuser: boolean; bypassRls: boolean }
   opsDatabaseRole?: { name: string; superuser: boolean; bypassRls: boolean }
   aiEnabled: boolean
+  /** 只读的启动配置摘要；运行凭据与数据库连接字符串不会下发。 */
+  configuration?: {
+    publicUrl: string
+    trustedProxies: string[]
+    auth: { cookieSecure: boolean; accessTokenTtlSeconds: number; refreshTokenTtlSeconds: number }
+    mcp: { enabled: boolean; maxTtlHours: number }
+    storage: { endpoint: string; publicEndpoint: string; bucket: string; region: string; useSsl: boolean; publicUseSsl: boolean }
+    backup: { directory: string; offsiteDirectory: string; remoteRecipientReady: boolean }
+    secrets: { mailReady: boolean; aiReady: boolean; backupRemoteReady: boolean }
+  }
 }
 
 export interface OpsAuditEntry {

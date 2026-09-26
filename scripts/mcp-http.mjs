@@ -15,11 +15,32 @@ export async function sendMCP(connection, message, protocolVersion) {
   const headers = { Authorization: `Bearer ${connection.token}`, 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' }
   if (protocolVersion) headers['MCP-Protocol-Version'] = protocolVersion
   const response = await fetch(connection.endpoint, { method: 'POST', headers, body: JSON.stringify(message), redirect: 'error', signal: AbortSignal.timeout(60_000) })
-  if (response.status === 202 || response.status === 204) return null
-  if (!response.ok) throw new Error(response.status === 401 ? 'MCP 密钥已失效，请在账号设置重新签发。' : `MCP 请求失败，HTTP ${response.status}。`)
-  const text = await response.text()
-  if (Buffer.byteLength(text) > 5 * 1024 * 1024) throw new Error('MCP 返回内容过大，请缩小查询范围。')
-  return JSON.parse(text)
+  if (response.status === 202 || response.status === 204 || !response.ok) {
+    await response.body?.cancel()
+    if (response.ok) return null
+    throw new Error(response.status === 401 ? 'MCP 密钥已失效，请在账号设置重新签发。' : `MCP 请求失败，HTTP ${response.status}。`)
+  }
+  // Enforce the limit while reading, including chunked/decompressed responses.
+  // Checking after response.text() would already have buffered an unlimited body.
+  const reader = response.body?.getReader()
+  const chunks = []
+  let bytes = 0
+  if (reader) {
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        bytes += value.byteLength
+        if (bytes > 5 * 1024 * 1024) {
+          await reader.cancel()
+          throw new Error('MCP 返回内容过大，请缩小查询范围。')
+        }
+        chunks.push(value)
+      }
+    } finally { reader.releaseLock() }
+  }
+  try { return JSON.parse(Buffer.concat(chunks, bytes).toString('utf8')) }
+  catch { throw new Error('MCP 返回了无效的 JSON 响应。') }
 }
 
 export async function callMCP(connection, name, args) {

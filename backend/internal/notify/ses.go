@@ -22,6 +22,10 @@ import (
 const tencentSESEndpoint = "ses.tencentcloudapi.com"
 
 func isSESFrequencyLimit(err error) bool {
+	var other *ProviderFailure
+	if errors.As(err, &other) {
+		return other.Limited
+	}
 	var providerError *sdkerrors.TencentCloudSDKError
 	return errors.As(err, &providerError) && providerError != nil && providerError.GetCode() == "FailedOperation.FrequencyLimit"
 }

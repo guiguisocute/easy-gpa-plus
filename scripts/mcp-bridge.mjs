@@ -14,6 +14,7 @@ let active = 0
 let ended = false
 const output = (message) => process.stdout.write(`${JSON.stringify(message)}\n`)
 async function forward(line) {
+  if (Buffer.byteLength(line) > 256 * 1024) { output({ jsonrpc: '2.0', id: null, error: { code: -32600, message: 'Request too large' } }); return }
   let request
   try { request = JSON.parse(line) } catch { output({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Invalid JSON' } }); return }
   const id = request?.id
@@ -38,7 +39,6 @@ process.stdin.on('data', (chunk) => {
   while ((boundary = buffer.indexOf('\n')) >= 0) {
     const line = buffer.slice(0, boundary).trim(); buffer = buffer.slice(boundary + 1)
     if (!line) continue
-    if (Buffer.byteLength(line) > 256 * 1024) { output({ jsonrpc: '2.0', id: null, error: { code: -32600, message: 'Request too large' } }); continue }
     void forward(line)
   }
 })

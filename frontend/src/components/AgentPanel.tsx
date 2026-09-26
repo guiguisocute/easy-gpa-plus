@@ -1,11 +1,11 @@
-/* Agent 面板的外壳：入口按钮、右下角浮窗、配额头部、来源下载和草稿确认。
+/* Agent 工作区：配额头部、来源下载和草稿确认。
 
    聊天本身（消息流、思维链、工具链路、输入框、会话列表）由 assistant-ui 的
    primitives 渲染，见 ./agent/。这里只留下那些 assistant-ui 不该知道的东西：
    综测系统自己的权限门槛、来源重鉴权和“草稿只到草稿”的二次确认。 */
 
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { Bot, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { X } from 'lucide-react'
 import { AssistantRuntimeProvider } from '@assistant-ui/react'
 import { ApiError } from '@/api/client'
 import type { AgentAction, AgentCitation, AgentStatus, PreparedAgentAction } from '@/api/types'
@@ -16,7 +16,6 @@ import { AgentThreadList } from '@/components/agent/AgentThreadList'
 import { useAgentRuntime } from '@/components/agent/runtime'
 import { Btn, Empty, Note } from '@/components/ui'
 import { AGENT_ACTION_LABEL, AGENT_ERROR_LABEL, agentContextLabel } from '@/lib/knowledgeAgent'
-import { clampFrame, FLOAT_EDGES, moveFrame, resizeFrame, type FloatEdge, type FloatFrame } from '@/lib/floatPanel'
 import { navEntry, NAV, type View } from '@/lib/nav'
 import { mono } from '@/lib/style'
 import type { Role } from '@/lib/types'
@@ -24,104 +23,6 @@ import { useApp } from '@/stores/app'
 import { currentAgentPage, pageKey, sameAgentDraft } from '@/stores/agentPage'
 import { agentPageContextSchema } from '@/api/knowledgeAgentSchemas'
 import { RichText } from '@/components/Markdown'
-
-export function AgentLauncher() {
-  const status = useAgentStatus()
-  const [open, setOpen] = useState(false)
-  const buttonRef = useRef<HTMLButtonElement>(null)
-  const frame = useFloatPanel()
-
-  if (!status.data?.enabled) return null
-
-  const close = () => {
-    setOpen(false)
-    window.setTimeout(() => buttonRef.current?.focus(), 0)
-  }
-
-  /* 浮窗和入口按钮抢同一个角落，所以开着的时候把按钮收起来；关闭时它会重新挂载，
-     close() 里那个 setTimeout 正好等到 ref 重新绑上。 */
-  return open ? (
-    <aside
-      ref={frame.ref}
-      className="agent-float"
-      style={frame.style}
-      onPointerDown={frame.onPointerDown}
-      role="dialog"
-      aria-label="班级知识 Agent"
-    >
-      <AgentWorkspace status={status.data} onClose={close} />
-      {FLOAT_EDGES.map((edge) => (
-        <span key={edge} className={`agent-resize agent-resize-${edge}`} data-edge={edge} />
-      ))}
-    </aside>
-  ) : (
-    <button
-      ref={buttonRef}
-      type="button"
-      aria-label="打开班级知识 Agent"
-      aria-expanded={false}
-      className="agent-launcher hv-op82"
-      onClick={() => setOpen(true)}
-    >
-      <Bot size={20} strokeWidth={1.7} aria-hidden="true" />
-      <span>问 Agent</span>
-    </button>
-  )
-}
-
-/* 标题栏拖动，边角改尺寸。hook 挂在常驻的 AgentLauncher 上，关掉再打开还在原处。
-   窄屏是贴底抽屉，两个手势都关掉。窗口尺寸变了只夹回视口，不丢用户刚拉的大小。 */
-function useFloatPanel() {
-  const ref = useRef<HTMLElement>(null)
-  const [frame, setFrame] = useState<FloatFrame | null>(null)
-
-  useEffect(() => {
-    const fit = () => setFrame((current) => current ? clampFrame(current, window.innerWidth, window.innerHeight) : current)
-    window.addEventListener('resize', fit)
-    return () => window.removeEventListener('resize', fit)
-  }, [])
-
-  const onPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
-    const node = ref.current
-    const target = event.target as HTMLElement
-    if (!node || event.button !== 0) return
-    if (window.matchMedia('(max-width: 600px)').matches) return
-    const edge = target.closest('[data-edge]')?.getAttribute('data-edge') as FloatEdge | undefined
-    const dragging = !edge && !!target.closest('.agent-head') && !target.closest('button')
-    if (!edge && !dragging) return
-    const box = node.getBoundingClientRect()
-    const start: FloatFrame = { left: box.left, top: box.top, width: box.width, height: box.height }
-    const originX = event.clientX
-    const originY = event.clientY
-    const move = (moved: PointerEvent) => {
-      const dx = moved.clientX - originX
-      const dy = moved.clientY - originY
-      setFrame(edge
-        ? resizeFrame(start, edge, dx, dy, window.innerWidth, window.innerHeight)
-        : moveFrame(start, dx, dy, window.innerWidth, window.innerHeight))
-    }
-    const stop = () => {
-      window.removeEventListener('pointermove', move)
-      window.removeEventListener('pointerup', stop)
-    }
-    window.addEventListener('pointermove', move)
-    window.addEventListener('pointerup', stop)
-    event.preventDefault()
-  }
-
-  return {
-    ref,
-    onPointerDown,
-    style: frame ? {
-      left: frame.left,
-      top: frame.top,
-      width: frame.width,
-      height: frame.height,
-      right: 'auto',
-      bottom: 'auto',
-    } : undefined,
-  }
-}
 
 export function AgentWorkspace({ status: suppliedStatus, onClose, embedded = false }: { status?: AgentStatus; onClose?: () => void; embedded?: boolean }) {
   const statusQuery = useAgentStatus()

@@ -659,6 +659,7 @@ func (s *Server) opsMail(c *gin.Context) {
 		writeServiceError(c, err)
 		return
 	}
+	status := s.mailChannelStatus(config)
 	config, secretSource, secretIDSet, secretKeySet := redactOpsMailConfig(config)
 	var suppressedRecipients, pendingBatches, failedBatches int
 	var lastFeedback *time.Time
@@ -670,23 +671,27 @@ func (s *Server) opsMail(c *gin.Context) {
 		writeServiceError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"config": config, "activeProvider": config.Provider, "secretSource": secretSource,
-		"sesSecretIdSet": secretIDSet, "sesSecretKeySet": secretKeySet, "secretKeyReady": s.deps.MailCipher != nil,
-		"notificationStats": gin.H{"suppressedRecipients": suppressedRecipients, "pendingBatches": pendingBatches, "failedBatches": failedBatches, "lastFeedbackAt": lastFeedback},
-	})
+	status["config"], status["activeProvider"], status["secretSource"] = config, config.Provider, secretSource
+	status["sesSecretIdSet"], status["sesSecretKeySet"], status["secretKeyReady"] = secretIDSet, secretKeySet, s.deps.MailCipher != nil
+	status["notificationStats"] = gin.H{"suppressedRecipients": suppressedRecipients, "pendingBatches": pendingBatches, "failedBatches": failedBatches, "lastFeedbackAt": lastFeedback}
+	c.JSON(http.StatusOK, status)
 }
 
 func redactOpsMailConfig(config opsconfig.Mail) (opsconfig.Mail, string, bool, bool) {
 	secretIDSet := strings.TrimSpace(config.SESSecretID) != ""
 	secretKeySet := strings.TrimSpace(config.SESSecretKey) != ""
 	secretSource := "environment"
-	if config.SESConfigured() {
+	if config.Provider != "tencent_ses" && config.Provider != "" || config.SESHasSettings() {
 		secretSource = "database"
 	}
 	// 密文也不下发：浏览器永远只知道"设没设过"，不知道内容。
 	config.SESSecretID = ""
 	config.SESSecretKey = ""
+	config.SMTPUsername = ""
+	config.SMTPPassword = ""
+	config.AliyunAccessKeyID = ""
+	config.AliyunAccessKeySecret = ""
+	config.ResendAPIKey = ""
 	return config, secretSource, secretIDSet, secretKeySet
 }
 
@@ -704,6 +709,9 @@ func (s *Server) updateOpsMail(c *gin.Context) {
 		"provider": true, "perMinute": true, "perDay": true, "quietStart": true, "quietEnd": true,
 		"sesRegion": true, "sesSecretId": true, "sesSecretKey": true,
 		"sesFrom": true, "sesFromName": true, "sesReplyTo": true, "sesTemplateIds": true,
+		"smtpHost": true, "smtpPort": true, "smtpSecurity": true, "smtpUsername": true, "smtpPassword": true,
+		"aliyunRegion": true, "aliyunAccessKeyId": true, "aliyunAccessKeySecret": true,
+		"resendApiKey": true,
 	}
 	for key := range input {
 		if !allowed[key] {
@@ -711,12 +719,8 @@ func (s *Server) updateOpsMail(c *gin.Context) {
 			return
 		}
 	}
-	if err := normalizeMailSES(input, s.deps.MailCipher); err != nil {
+	if err := normalizeMailChannels(input, s.deps.MailCipher); err != nil {
 		writeError(c, http.StatusUnprocessableEntity, "mail_config_invalid", err.Error(), nil)
-		return
-	}
-	if provider, ok := input["provider"].(string); ok && provider != "tencent_ses" {
-		writeError(c, http.StatusUnprocessableEntity, "provider_unsupported", "当前只启用腾讯云 SES API 通道", nil)
 		return
 	}
 	if enabled, exists := input["notificationsEnabled"]; exists {
@@ -739,12 +743,19 @@ func (s *Server) updateOpsMail(c *gin.Context) {
 	merged, _ = json.Marshal(candidate)
 	var next opsconfig.Mail
 	if err = json.Unmarshal(merged, &next); err != nil {
-		writeServiceError(c, err)
+		writeError(c, http.StatusUnprocessableEntity, "mail_config_invalid", "邮件配置字段类型不正确", nil)
+		return
+	}
+	if err = validateSMTPDestinationChange(current, next, input); err != nil {
+		writeError(c, http.StatusUnprocessableEntity, "mail_config_invalid", err.Error(), nil)
 		return
 	}
 	if next.NotificationsEnabled {
-		check := notify.SESConfig{NotificationsEnabled: true, From: next.SESFrom, NotificationFrom: next.SESNotificationFrom, NotificationFromName: next.SESNotificationFromName, TemplateIDs: next.SESTemplateIDs}
-		if err = check.NotificationReady(); err != nil {
+		if err = notify.ValidateMailNotifications(next); err != nil {
+			writeError(c, http.StatusUnprocessableEntity, "mail_config_invalid", err.Error(), nil)
+			return
+		}
+		if _, err = notify.ResolveMailConfiguration(next, s.deps.MailCipher, s.environmentMailConfig()); err != nil {
 			writeError(c, http.StatusUnprocessableEntity, "mail_config_invalid", err.Error(), nil)
 			return
 		}
@@ -847,7 +858,7 @@ func normalizeMailSES(input map[string]any, cipher *opsconfig.Cipher) error {
 		required := make(map[string]bool, len(opsconfig.RequiredMailTemplates))
 		for _, name := range opsconfig.RequiredMailTemplates {
 			required[name] = true
-			if ids[name] == 0 {
+			if len(ids) > 0 && ids[name] == 0 {
 				return errors.New("缺少腾讯云模板 ID：" + name)
 			}
 		}
@@ -864,7 +875,7 @@ func normalizeMailSES(input map[string]any, cipher *opsconfig.Cipher) error {
 		}
 		input["sesTemplateIds"] = ids
 	}
-	for _, key := range []string{"sesSecretId", "sesSecretKey"} {
+	for _, key := range []string{"sesSecretId", "sesSecretKey", "smtpUsername", "smtpPassword", "aliyunAccessKeyId", "aliyunAccessKeySecret", "resendApiKey"} {
 		value, exists := input[key]
 		if !exists {
 			continue
@@ -878,7 +889,7 @@ func normalizeMailSES(input map[string]any, cipher *opsconfig.Cipher) error {
 			continue
 		}
 		if cipher == nil {
-			return errors.New("服务端未配置 MAIL_SECRET_KEY，无法安全保存腾讯云凭据；请先设置该环境变量再重试")
+			return errors.New("服务端未配置 MAIL_SECRET_KEY，无法安全保存邮件凭据；请先设置该环境变量再重试")
 		}
 		sealed, err := cipher.Seal(secret)
 		if err != nil {
@@ -902,15 +913,20 @@ func (s *Server) testOpsMail(c *gin.Context) {
 		writeError(c, http.StatusUnprocessableEntity, "email_invalid", "收件邮箱格式不正确", nil)
 		return
 	}
+	settings, err := s.opsConfig.Mail(c.Request.Context())
+	if err != nil {
+		writeServiceError(c, err)
+		return
+	}
 	messageID, err := s.deps.Mailer.Send(c.Request.Context(), notify.Message{
 		To: address.Address, Subject: "[综测] 邮件通道测试", Text: "EasyGPA Plus 邮件通道工作正常。",
 		Template: notify.TemplateMailTest,
 		Data: map[string]any{
-			"email": address.Address, "provider": "腾讯云 SES API", "sent_at": time.Now().Format("2006-01-02 15:04:05 MST"),
+			"email": address.Address, "provider": mailProviderName(settings.Provider), "sent_at": time.Now().Format("2006-01-02 15:04:05 MST"),
 		},
 	})
 	if err != nil {
-		_ = s.appendOpsAudit(c.Request.Context(), c, "mail.test_failed", "mail_config", "mail", map[string]any{"error": err.Error()})
+		_ = s.appendOpsAudit(c.Request.Context(), c, "mail.test_failed", "mail_config", "mail", map[string]any{"provider": settings.Provider})
 		writeServiceError(c, err)
 		return
 	}
@@ -929,7 +945,7 @@ func (s *Server) rotateOpsMailKey(c *gin.Context) {
 	if !s.opsPool(c) {
 		return
 	}
-	const clear = `{"provider":"tencent_ses","notificationsEnabled":false,"sesNotificationFrom":"","sesNotificationFromName":"","sesRegion":"ap-guangzhou","sesSecretId":"","sesSecretKey":"","sesFrom":"","sesFromName":"","sesReplyTo":"","sesTemplateIds":{}}`
+	const clear = `{"provider":"tencent_ses","notificationsEnabled":false,"sesNotificationFrom":"","sesNotificationFromName":"","sesRegion":"ap-guangzhou","sesSecretId":"","sesSecretKey":"","sesFrom":"","sesFromName":"","sesReplyTo":"","sesTemplateIds":{},"smtpHost":"","smtpPort":587,"smtpSecurity":"starttls","smtpUsername":"","smtpPassword":"","aliyunRegion":"cn-hangzhou","aliyunAccessKeyId":"","aliyunAccessKeySecret":"","resendApiKey":""}`
 	if _, err := s.deps.Pools.Ops.Exec(c.Request.Context(), `UPDATE ops_config SET value=value||$1::jsonb,updated_at=now() WHERE key='mail'`, clear); err != nil {
 		writeServiceError(c, err)
 		return
@@ -1621,6 +1637,7 @@ func (s *Server) opsDeploy(c *gin.Context) {
 		"databaseRole":     businessRole,
 		"opsDatabaseRole":  opsRole,
 		"aiEnabled":        s.aiSwitchEnabled(c.Request.Context()),
+		"configuration":    s.deploymentConfiguration(),
 	})
 }
 

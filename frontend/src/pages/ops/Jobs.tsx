@@ -104,7 +104,7 @@ export default function OpsJobs() {
             <THead cells={['消费组', '流', '长度', '未确认', '滞后', '最后投递 ID']} />
             {groups.map((g) => (
               <TRow
-                key={g.group}
+                key={JSON.stringify([g.stream, g.group])}
                 cells={[
                   <span key="a" style={{ color: 'var(--fg)', fontWeight: 500 }}>{g.group}</span>,
                   <span key="b" style={mono('11px', '.02em')}>{g.stream}</span>,

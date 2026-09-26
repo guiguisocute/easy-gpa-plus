@@ -1,4 +1,48 @@
 /* 运维表单按可用宽度收拢，路由配置在窄屏逐项填写。 */
+.ops-page { min-width: 0; animation: rise .28s ease both; }
+.ops-tabs { display: flex; gap: 28px; overflow-x: auto; border-bottom: 1px solid var(--line); margin: 4px 0 0; scrollbar-width: thin; }
+.ops-tabs > button { flex: none; border: 0; border-bottom: 2px solid transparent; padding: 15px 0; background: transparent; color: var(--fg3); font: inherit; font-size: 13px; cursor: pointer; }
+.ops-tabs > button[aria-selected="true"] { border-bottom-color: var(--fg); color: var(--fg); font-weight: 600; }
+.ops-tabs > button:focus-visible { outline: 2px solid var(--fg); outline-offset: -2px; }
+.ops-section { display: grid; grid-template-columns: minmax(160px, .65fr) minmax(0, 2fr); gap: 24px 44px; padding: 30px 0; border-bottom: 1px solid var(--line2); }
+.ops-section-heading { min-width: 0; }
+.ops-section-heading h2 { margin: 0; font-size: 14px; line-height: 1.7; font-weight: 600; }
+.ops-section-heading p { margin: 7px 0 0; font-size: 12.5px; color: var(--fg3); line-height: 1.85; text-wrap: pretty; }
+.ops-section-content { min-width: 0; }
+.ops-form { padding: 0; margin: 0; border: 0; min-width: 0; }
+.ops-field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.ops-field-label { font-size: 12.5px; font-weight: 500; color: var(--fg2); }
+.ops-field-hint { font-size: 11.5px; line-height: 1.7; color: var(--fg3); }
+.ops-field input, .ops-field select { width: 100%; min-width: 0; }
+.ops-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; }
+.ops-form-grid .ops-field-wide { grid-column: 1 / -1; }
+.ops-actions { display: flex; justify-content: space-between; align-items: center; gap: 14px 24px; flex-wrap: wrap; padding: 20px 0; }
+.ops-actions > div { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.ops-actions > span { font-size: 12px; line-height: 1.7; color: var(--fg3); }
+.ops-load-error { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; padding: 24px 0; }
+.ops-provider-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.ops-provider-choice { display: flex; flex-direction: column; gap: 9px; text-align: left; border: 1px solid var(--line); background: var(--bg); color: var(--fg); padding: 16px; font: inherit; cursor: pointer; }
+.ops-provider-choice[aria-pressed="true"] { border-color: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
+.ops-provider-choice strong { font-size: 13px; font-weight: 600; }
+.ops-provider-choice span { font-size: 11.5px; line-height: 1.65; color: var(--fg3); }
+.ops-secret-controls { display: flex; align-items: center; gap: 10px; margin-top: 7px; }
+.ops-secret-controls button { border: 0; background: none; padding: 0; font: inherit; font-size: 11.5px; color: var(--red); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.ops-setting-row { display: flex; align-items: center; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line2); }
+.ops-setting-copy { flex: 1; min-width: 0; }
+.ops-setting-copy strong { display: block; font-size: 13px; font-weight: 500; line-height: 1.7; }
+.ops-setting-copy p { margin: 3px 0 0; font-size: 12px; line-height: 1.75; color: var(--fg3); }
+.ops-setting-control { display: flex; align-items: center; gap: 10px; flex: none; }
+.ops-setting-control small { width: 45px; color: var(--fg3); font-size: 11.5px; }
+.ops-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 16px; padding: 18px 0; }
+.ops-toolbar > label { flex: 1 1 140px; }
+.ops-toolbar > label input, .ops-toolbar > label select { width: 100%; }
+.ops-inline-status { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; font-size: 12px; color: var(--fg3); line-height: 1.7; }
+.ops-checkline { display: flex; gap: 9px; align-items: flex-start; font-size: 12.5px; line-height: 1.85; color: var(--fg2); }
+.ops-checkline input { margin-top: 5px; flex: none; }
+.ops-detail-box { border: 1px solid var(--line); padding: 20px; margin: 16px 0; }
+.ops-reading { font-size: 12.5px; line-height: 1.9; color: var(--fg2); }
+.ops-reading code { font-size: 11.5px; overflow-wrap: anywhere; }
+.ops-empty-message { padding: 18px 0; font-size: 12.5px; color: var(--fg3); }
 .ops-model-routing {
   container: ops-routing / inline-size;
   min-width: 0;
@@ -96,6 +140,7 @@
 }
 
 @container shell (max-width: 1060px) {
+  .ops-section { grid-template-columns: minmax(0, 1fr); gap: 18px; }
   .ops-inset-panel {
     padding-left: 0 !important;
     padding-right: 0 !important;
@@ -103,6 +148,14 @@
 }
 
 @media (max-width: 600px) {
+  .ops-provider-choices, .ops-form-grid { grid-template-columns: minmax(0, 1fr); }
+  .ops-provider-choice { flex-direction: row; align-items: baseline; justify-content: space-between; gap: 15px; }
+  .ops-provider-choice strong { flex: none; }
+  .ops-provider-choice span { text-align: right; }
+  .ops-setting-row { align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+  .ops-setting-copy { flex-basis: calc(100% - 60px); }
+  .ops-setting-control { margin-left: auto; }
+  .ops-tabs { gap: 24px; }
   .ops-limit-grid,
   .ops-mail-template {
     grid-template-columns: minmax(0, 1fr);

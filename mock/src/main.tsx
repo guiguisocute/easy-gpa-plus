@@ -1,9 +1,10 @@
-import { StrictMode } from 'react'
+import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import '@/styles/global.css'
 import { useApp } from '@/stores/app'
-import DemoWorkspace from './Workspace'
+
+const DemoWorkspace = lazy(() => import('./Workspace'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,7 +25,7 @@ import.meta.hot?.dispose(unsubscribeIdentity)
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <DemoWorkspace />
+      <Suspense fallback={<div className="load-bar" role="status" aria-label="正在打开演示"><span /></div>}><DemoWorkspace /></Suspense>
     </QueryClientProvider>
   </StrictMode>,
 )

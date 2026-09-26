@@ -1,15 +1,19 @@
 import { mockGovernance, governanceMode, governanceHelper, governanceOpenHelper, MOCK_GOVERNANCE_EXECUTION } from './governance'
 import demoCrest from '../../examples/crest.svg?raw'
 import { mockMCPSettings } from './mcp'
+import { mockMailConfig, updateMockMail, resetMockMail } from './opsMail'
+import { DEFAULT_OPS_FLAGS } from './opsFlags'
 import type {
   Appeal,
   AppealDetail,
+  AIProvider,
   ClassInfo,
   ClassificationSuggestion,
   Evidence,
   Gate,
   MyScore,
   MyScorecard,
+  ModelRouteState,
   NamedReview,
   Objection,
   ReviewStudent,
@@ -594,36 +598,65 @@ function opsDeploy() {
     appEnv: 'mock',
     imageTag: 'mock-local',
     gitSha: 'mock000000000000000000000000000000000000',
-    migrationVersion: 63,
+    migrationVersion: 64,
     databaseRole: { name: 'easygpa', superuser: false, bypassRls: false },
-    opsDatabaseRole: { name: 'easygpa_ops', superuser: false, bypassRls: false },
+    opsDatabaseRole: { name: 'easygpa_ops', superuser: false, bypassRls: true },
     aiEnabled: false,
+    configuration: {
+      publicUrl: 'https://gpa.example.org', trustedProxies: [],
+      auth: { cookieSecure: true, accessTokenTtlSeconds: 900, refreshTokenTtlSeconds: 2592000 },
+      mcp: { enabled: true, maxTtlHours: 24 },
+      storage: { endpoint: 'garage:3900', publicEndpoint: 'files.example.org', bucket: 'easygpa', region: 'garage', useSsl: false, publicUseSsl: true },
+      backup: { directory: '/backups/local', offsiteDirectory: '/backups/offsite', remoteRecipientReady: true },
+      secrets: { mailReady: true, aiReady: true, backupRemoteReady: true },
+    },
   }
 }
 
-function mailConfig() {
+function agentProviders(): AIProvider[] {
+  return [{
+    id: 'prov-1', name: '演示通道', baseUrl: 'https://api.example.invalid/v1', authType: 'bearer',
+    timeoutSeconds: 30, maxRetries: 2, capabilities: { json: true, stream: true, vision: true, models: true },
+    enabled: true, revision: 1, createdAt: '2026-07-01T00:00:00.000Z', updatedAt: nowIso(), apiKeySet: true,
+  }]
+}
+
+function agentRoutes(): ModelRouteState {
   return {
-    config: { provider: 'ses', perMinute: 20, perDay: 400, sesRegion: 'ap-hongkong', sesFromName: '综测统计平台' },
-    activeProvider: 'ses',
-    secretSource: 'environment',
-    sesSecretIdSet: true,
-    sesSecretKeySet: true,
-    secretKeyReady: true,
+    items: [{ purpose: 'agent.text', providerId: 'prov-1', providerName: '演示通道', model: 'demo-agent', parameters: {}, revision: 1, updatedAt: nowIso() }],
+    purposes: ['material.vision', 'material.compose', 'knowledge.ocr', 'agent.text', 'agent.vision'],
   }
 }
 
 function agentConfig() {
+  const providers = agentProviders()
+  const routes = agentRoutes()
+  const config = { baseUrl: 'https://api.example.invalid/v1', textModel: 'demo-text', visionModel: 'demo-vision', agentModel: 'demo-agent' }
+  const routeStatus = Object.fromEntries(routes.purposes.map((purpose) => {
+    const route = routes.items.find((item) => item.purpose === purpose)
+    const provider = providers.find((item) => item.id === route?.providerId)
+    // The real API resolves unbound purposes through the legacy connection.
+    const fallbackModel = purpose === 'material.compose' ? config.textModel : purpose === 'agent.text' ? config.agentModel : config.visionModel
+    return [purpose, route && provider
+      ? { ready: provider.enabled && provider.apiKeySet, providerId: provider.id, provider: provider.name, model: route.model, legacy: false }
+      : { ready: true, providerId: '', provider: 'Legacy default', model: fallbackModel, legacy: true }]
+  }))
   return {
-    config: { baseUrl: 'https://api.example.invalid/v1', textModel: 'demo-text', visionModel: 'demo-vision', agentModel: 'demo-agent' },
+    config,
     sources: { baseUrl: 'database' as const, apiKey: 'database' as const, textModel: 'database' as const, visionModel: 'database' as const, agentModel: 'database' as const },
     enabled: true,
     ready: true,
+    legacyReady: true,
+    agentReady: true,
+    providerCount: providers.length,
+    routeCount: routes.items.length,
+    routeStatus,
     statusReason: '',
     knowledgeEnabled: true,
     agentActionsEnabled: true,
     knowledgeEgressEnabled: false,
-    knowledgeReady: true,
-    knowledgeStatusReason: '',
+    knowledgeReady: false,
+    knowledgeStatusReason: '尚未允许知识内容发送到模型端点',
     limits: {
       agentMaxSteps: 8,
       agentTimeoutSeconds: 60,
@@ -3007,13 +3040,16 @@ export async function handle(method: string, pathWithQuery: string, body: unknow
     }
     if (m === 'POST' && path === '/ops/templates') return { id: nid('tpl'), name: str(b.name), active: true, created: true, restored: false, updated: false }
     if (m === 'GET' && path === '/ops/template-share-requests') return { items: [] }
-    if (m === 'GET' && path === '/ops/mail') return mailConfig()
-    if (m === 'PUT' && path === '/ops/mail') return undefined
-    if (m === 'POST' && path === '/ops/mail/test') return { sent: true, messageId: nid('mail') }
-    if (m === 'POST' && path === '/ops/mail/rotate-key') return { cleared: true }
+    if (m === 'GET' && path === '/ops/mail') return mockMailConfig()
+    if (m === 'PUT' && path === '/ops/mail') return updateMockMail(b)
+    if (m === 'POST' && path === '/ops/mail/test') {
+      if (!mockMailConfig().configured) fail(422, 'mail_config_invalid', '请先完整配置并保存邮件通道')
+      return { sent: true, messageId: nid('mail'), demo: true }
+    }
+    if (m === 'POST' && path === '/ops/mail/rotate-key') return resetMockMail()
     if (m === 'GET' && path === '/ops/mail/log') {
       return pageOf(
-        [{ id: 'ml-1', tenantId: 'tn-demo', eventId: 'ev-1', recipientHash: 'abc123', provider: 'ses', status: 'sent', attempt: 1, error: null, createdAt: nowIso() }],
+        [{ id: 'ml-1', tenantId: 'tn-demo', eventId: 'ev-1', recipientHash: 'abc123', provider: mockMailConfig().activeProvider, status: 'sent', attempt: 1, error: null, createdAt: nowIso() }],
         query,
       )
     }
@@ -3038,33 +3074,11 @@ export async function handle(method: string, pathWithQuery: string, body: unknow
       }
     }
     if (m === 'GET' && path === '/ops/agent/providers') {
-      return {
-        items: [
-          {
-            id: 'prov-1',
-            name: '演示通道',
-            baseUrl: 'https://api.example.invalid/v1',
-            authType: 'bearer',
-            timeoutSeconds: 30,
-            maxRetries: 2,
-            capabilities: { json: true, stream: true, vision: true, models: true },
-            enabled: true,
-            revision: 1,
-            createdAt: '2026-07-01T00:00:00.000Z',
-            updatedAt: nowIso(),
-            apiKeySet: true,
-          },
-        ],
-      }
+      return { items: agentProviders() }
     }
     if (m === 'POST' && path === '/ops/agent/providers') return { id: nid('prov') }
     if (m === 'GET' && path === '/ops/agent/routes') {
-      return {
-        items: [
-          { purpose: 'agent.text', providerId: 'prov-1', providerName: '演示通道', model: 'demo-agent', parameters: {}, revision: 1, updatedAt: nowIso() },
-        ],
-        purposes: ['material.vision', 'material.compose', 'knowledge.ocr', 'agent.text', 'agent.vision'],
-      }
+      return agentRoutes()
     }
     if (m === 'GET' && path === '/ops/queues') {
       return {
@@ -3190,7 +3204,7 @@ export async function handle(method: string, pathWithQuery: string, body: unknow
     }
     if (m === 'PUT' && path === '/ops/lifecycle') return { policy: b }
     if (m === 'GET' && path === '/ops/flags') {
-      return { flags: { maintenance: false, registration: true, uploadMaxMb: 50, apiRateLimitPerMinute: 120, ...db().flags }, locked: [], deploymentLimits: { apiRateLimitPerMinute: 120, apiRateLimitBurst: 40, passwordHashConcurrency: 2 } }
+      return { flags: { ...DEFAULT_OPS_FLAGS, ...db().flags }, locked: [], deploymentLimits: { apiRateLimitPerMinute: 180, apiRateLimitBurst: 60, passwordHashConcurrency: 4 } }
     }
     {
       const p = match('/ops/flags/:key', path)

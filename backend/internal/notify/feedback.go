@@ -39,14 +39,14 @@ func (m *RuntimeSESMailer) SyncFeedback(ctx context.Context, pool *pgxpool.Pool)
 	}
 	concrete, ok := provider.(*SESMailer)
 	if !ok {
-		return errors.New("SES feedback client unavailable")
+		return nil // Other providers' receipts are not Tencent message IDs.
 	}
 	client, ok := concrete.api.(sesStatusAPI)
 	if !ok {
 		return errors.New("SES feedback API unavailable")
 	}
 	rows, err := pool.Query(ctx, `SELECT id,provider_id,recipient,created_at FROM mail_delivery
-        WHERE status='sent' AND provider_id<>'' AND feedback_next_at<=now()
+        WHERE provider='tencent_ses' AND status='sent' AND provider_id<>'' AND provider_id NOT LIKE 'smtp:%' AND provider_id NOT LIKE 'aliyun:%' AND provider_id NOT LIKE 'resend:%' AND feedback_next_at<=now()
         ORDER BY feedback_next_at,id LIMIT 30`)
 	if err != nil {
 		return err

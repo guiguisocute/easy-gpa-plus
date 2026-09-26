@@ -3,8 +3,8 @@
 
 import BrandingSettings from './Branding'
 import { useState } from 'react'
-import { Btn, Note, PageHead, Pill, Stat, StatGrid, Sub, Toggle } from '@/components/ui'
-import { fieldStyle, mono, num } from '@/lib/style'
+import { Btn, Note, PageHead, Pill, Toggle } from '@/components/ui'
+import { fieldStyle, num } from '@/lib/style'
 import { useApp } from '@/stores/app'
 import { ApiError } from '@/api/client'
 import { useFlags, useOpsActions } from '@/api/queries'
@@ -38,134 +38,72 @@ const META: Record<string, { name: string; desc: string; kind: 'bool' | 'number'
 
 const EVIDENCE_FORMATS = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'wps', 'et', 'dps', 'zip', 'rar', '7z', 'mp4']
 
+import { OpsActions, OpsLoadError, OpsSection, OpsTabPanel, OpsTabs } from '@/components/OpsLayout'
+
+const TABS = [{ id: 'access', label: '访问与容量' }, { id: 'limits', label: '频率限制' }, { id: 'formats', label: '文件格式' }, { id: 'branding', label: '登录页品牌' }]
+
 export default function OpsFlags() {
-  const say = useApp((s) => s.say)
+  const say = useApp((state) => state.say)
   const flags = useFlags()
   const { setFlag } = useOpsActions()
+  const [tab, setTab] = useState('access')
   const [edit, setEdit] = useState<Record<string, string>>({})
-	const [formatEdit, setFormatEdit] = useState<string[] | null>(null)
-
+  const [formatEdit, setFormatEdit] = useState<string[] | null>(null)
   if (flags.isLoading) return <div className="load-bar"><span /></div>
+  if (!flags.data) return <OpsLoadError title="平台设置暂时无法读取" onRetry={() => void flags.refetch()} />
 
-  const values = flags.data?.flags ?? {}
-  const locked = new Set(flags.data?.locked ?? [])
-  const deployment = flags.data?.deploymentLimits
-  const keys = Object.keys(META).filter((k) => k in values || locked.has(k))
-  const fail = (e: unknown) => say(e instanceof ApiError ? e.message : '修改失败')
-
-  return (
-    <div style={{ animation: 'rise .28s ease both' }}>
-      <PageHead
-        en="FLAGS"
-        title="开关与阈值"
-        desc="全局开关、限流和维护"
-        side={<Pill tone={values.maintenance ? 'warn' : 'ok'}>{values.maintenance ? '维护模式中' : '正常服务'}</Pill>}
-      />
-
-      <BrandingSettings />
-      <StatGrid cols={4}>
-        <Stat en="维护模式" value={values.maintenance ? '开启' : '关闭'} note="开启后业务只读" tone={values.maintenance ? 'var(--red)' : undefined} />
-        <Stat en="开放注册" value={values.registration ? '开启' : '关闭'} note="关闭后新账号无法建立" />
-        <Stat en="佐证上限" value={String(values.uploadMaxMb ?? '—')} unit="MB" note="单份文件的硬上限" />
-        <Stat en="API 限流" value={String(values.apiRateLimitPerMinute ?? '—')} unit="次/分" note="按 IP 或登录会话计数" />
-      </StatGrid>
-
-      <div style={{ padding: '26px 0 0' }}>
-        <Sub title="开关" note="开关点一下就生效，数字要点保存" />
-        {keys.map((key) => {
-          const meta = META[key]
-          const isLocked = locked.has(key)
-          const current = values[key]
-          const minimum = meta.min ?? 1
-          let maximum = meta.max ?? 10000
-          if (key === 'apiRateLimitPerMinute' && deployment) maximum = Math.min(maximum, deployment.apiRateLimitPerMinute)
-          if (key === 'apiRateLimitBurst' && deployment) maximum = Math.min(maximum, deployment.apiRateLimitBurst)
-          if (key === 'passwordHashConcurrency' && deployment) maximum = Math.min(maximum, deployment.passwordHashConcurrency)
-          return (
-            <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 16, borderTop: '1px solid var(--line2)', padding: '15px 0', flexWrap: 'wrap' }}>
-              <span style={{ ...mono('11px', '.06em'), width: 160, flex: 'none' }}>{key}</span>
-              <span style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 200, flex: 1 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg)' }}>{meta.name}</span>
-                <span style={{ fontSize: 12.5, color: 'var(--fg3)', textWrap: 'pretty' }}>{meta.desc}</span>
-              </span>
-
-              {meta.kind === 'bool' ? (
-                <Toggle
-                  on={!!current}
-                  locked={isLocked}
-                  onClick={() => {
-                    if (isLocked) return say('此项由部署配置锁定')
-                    setFlag.mutate(
-                      { key, value: !current },
-                      { onSuccess: () => say(`${meta.name} 已${current ? '关闭' : '开启'}`), onError: fail },
-                    )
-                  }}
-                />
-              ) : (
-                <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 'none' }}>
-                  <input
-                    value={edit[key] ?? String(current ?? '')}
-                    onChange={(e) => setEdit((s) => ({ ...s, [key]: e.target.value }))}
-                    inputMode="numeric"
-                    min={minimum}
-                    max={maximum}
-                    style={{ ...fieldStyle, width: 90, textAlign: 'right', border: '1px solid var(--line)', padding: '7px 10px', ...num }}
-                  />
-                  <span style={{ fontSize: 12.5, color: 'var(--fg3)', width: 40 }}>{meta.unit}</span>
-                  <Btn
-                    disabled={
-                      edit[key] === undefined ||
-                      edit[key] === String(current) ||
-                      !/^\d+$/.test(edit[key]) ||
-                      Number(edit[key]) < minimum ||
-                      Number(edit[key]) > maximum
-                    }
-                    onClick={() =>
-                      setFlag.mutate(
-                        { key, value: Number(edit[key]) },
-                        {
-                          onSuccess: () => {
-                            setEdit((s) => {
-                              const next = { ...s }
-                              delete next[key]
-                              return next
-                            })
-                            say(`${meta.name} 已改为 ${edit[key]} ${meta.unit ?? ''}`)
-                          },
-                          onError: fail,
-                        },
-                      )
-                    }
-                  >
-                    保存
-                  </Btn>
-                </span>
-              )}
-            </div>
-          )
-        })}
-      </div>
-
-	  <div style={{ paddingTop: 26 }}>
-		<Sub title="平台允许的佐证格式" note="方案只能再收窄。上传时会核对文件头" />
-		<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', borderTop: '1px solid var(--line2)', padding: '14px 0' }}>
-		  {EVIDENCE_FORMATS.map((format) => {
-			const selected = formatEdit ?? (Array.isArray(values.evidenceAllowedFormats) ? values.evidenceAllowedFormats : EVIDENCE_FORMATS)
-			const on = selected.includes(format)
-			return <label key={format} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 9px', border: '1px solid var(--line)', fontSize: 12, cursor: 'pointer' }}>
-			  <input type="checkbox" checked={on} onChange={() => setFormatEdit(on ? selected.filter((item) => item !== format) : [...selected, format])} /> .{format}
-			</label>
-		  })}
-		</div>
-		<Btn primary disabled={formatEdit === null || formatEdit.length === 0 || setFlag.isPending} onClick={() => setFlag.mutate({ key: 'evidenceAllowedFormats', value: formatEdit ?? [] }, { onSuccess: () => { setFormatEdit(null); say('平台佐证格式策略已更新') }, onError: fail })}>保存格式策略</Btn>
-	  </div>
-
-      <div style={{ paddingTop: 26 }}>
-        <Note>
-          能填多大受部署时的上限卡着：API 总速率 {deployment?.apiRateLimitPerMinute ?? '—'} 次/分，
-          突发额度 {deployment?.apiRateLimitBurst ?? '—'}，密码校验并发上限 {deployment?.passwordHashConcurrency ?? '—'}。
-        </Note>
-      </div>
+  const values = flags.data.flags
+  const locked = new Set(flags.data.locked ?? [])
+  const deployment = flags.data.deploymentLimits
+  const fail = (error: unknown) => say(error instanceof ApiError ? error.message : '修改失败，请重试')
+  const selectedFormats = formatEdit ?? (Array.isArray(values.evidenceAllowedFormats) ? values.evidenceAllowedFormats : EVIDENCE_FORMATS)
+  const settings = (keys: string[]) => keys.filter((key) => key in values || locked.has(key)).map((key) => {
+    const meta = META[key]
+    const current = values[key]
+    const isLocked = locked.has(key)
+    const minimum = meta.min ?? 1
+    let maximum = meta.max ?? 10000
+    if (key === 'apiRateLimitPerMinute' && deployment) maximum = Math.min(maximum, deployment.apiRateLimitPerMinute)
+    if (key === 'apiRateLimitBurst' && deployment) maximum = Math.min(maximum, deployment.apiRateLimitBurst)
+    if (key === 'passwordHashConcurrency' && deployment) maximum = Math.min(maximum, deployment.passwordHashConcurrency)
+    const changed = edit[key] !== undefined && edit[key] !== String(current)
+    const invalid = !/^\d+$/.test(edit[key] ?? '') || Number(edit[key]) < minimum || Number(edit[key]) > maximum
+    return <div key={key} className="ops-setting-row">
+      <div className="ops-setting-copy"><strong>{meta.name}</strong><p>{meta.desc}</p>{isLocked ? <span className="ops-field-hint">由部署配置锁定</span> : meta.kind === 'number' && <span className="ops-field-hint">可设范围 {minimum}—{maximum} {meta.unit}</span>}</div>
+      {meta.kind === 'bool' ? <Toggle label={meta.name} on={!!current} locked={isLocked || setFlag.isPending} onClick={() => setFlag.mutate({ key, value: !current }, { onSuccess: () => say(meta.name + '已' + (current ? '关闭' : '开启')), onError: fail })} /> : <div className="ops-setting-control">
+        <input aria-label={meta.name} value={edit[key] ?? String(current ?? '')} disabled={isLocked || setFlag.isPending} onChange={(event) => setEdit((state) => ({ ...state, [key]: event.target.value }))} inputMode="numeric" min={minimum} max={maximum} style={{ ...fieldStyle, width: 90, textAlign: 'right', ...num }} />
+        <small>{meta.unit}</small>
+        <Btn disabled={isLocked || setFlag.isPending || !changed || invalid} onClick={() => setFlag.mutate({ key, value: Number(edit[key]) }, {
+          onSuccess: () => { setEdit((state) => { const next = { ...state }; delete next[key]; return next }); say(meta.name + '已更新') }, onError: fail,
+        })}>{setFlag.isPending && setFlag.variables?.key === key ? '保存中…' : '保存'}</Btn>
+      </div>}
     </div>
-  )
+  })
+
+  return <div className="ops-page">
+    <PageHead en="PLATFORM SETTINGS" title="开关与阈值" desc="按访问、容量和请求类型调整平台运行策略。" side={<Pill tone={values.maintenance ? 'warn' : 'ok'}>{values.maintenance ? '维护模式 · 业务只读' : '正常服务'}</Pill>} />
+    <OpsTabs id="flags" value={tab} onChange={setTab} items={TABS} />
+    <OpsTabPanel id="flags" name="access" active={tab}>
+      <OpsSection title="访问与功能" desc="开关修改立即生效。模型连接与知识授权请在 Agent 页面配置。">{settings(['maintenance', 'registration', 'nativeToolsEnabled', 'aiEnabled'])}</OpsSection>
+      <OpsSection title="容量与并发" desc="控制单次上传大小与同时执行的任务数量。较大的任务并发会增加内存占用。">{settings(['uploadMaxMb', 'requestConcurrency', 'exportConcurrency', 'passwordHashConcurrency'])}</OpsSection>
+    </OpsTabPanel>
+    <OpsTabPanel id="flags" name="limits" active={tab}>
+      <OpsSection title="API 请求" desc="按来源 IP 或已登录会话限流。突发额度不能大于每分钟上限。">{settings(['apiRateLimitPerMinute', 'apiRateLimitBurst'])}</OpsSection>
+      <OpsSection title="登录与账号" desc="分别限制登录、刷新、注册与密码操作。">{settings(['authLoginPerMinute', 'authRefreshPerMinute', 'authRegisterPerHour', 'authForgotPerHour', 'authResetPerHour'])}</OpsSection>
+      <OpsSection title="材料、问答与导出" desc="按用户限制资源密集操作，避免个别账户持续占用处理资源。">{settings(['evidencePresignPerHour', 'evidenceDailyMb', 'aiPresignPerHour', 'agentPresignPerHour', 'knowledgePresignPerHour', 'aiBatchActionsPerHour', 'agentMessagesPerMinute', 'exportRequestsPerHour', 'knowledgeReprocessPerHour'])}</OpsSection>
+      <div style={{ padding: '22px 0' }}><Note>部署上限：API {deployment?.apiRateLimitPerMinute ?? '—'} 次/分，突发 {deployment?.apiRateLimitBurst ?? '—'} 次，密码校验 {deployment?.passwordHashConcurrency ?? '—'} 并发。此页的配置不能超过这些上限。</Note></div>
+    </OpsTabPanel>
+    <OpsTabPanel id="flags" name="formats" active={tab}>
+      <OpsSection title="允许的佐证格式" desc="班级方案可进一步收窄。平台还会检查文件内容与实际格式，至少保留一种格式。">
+        <fieldset className="ops-form" disabled={setFlag.isPending || locked.has('evidenceAllowedFormats')}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>{EVIDENCE_FORMATS.map((format) => {
+            const selected = selectedFormats.includes(format)
+            return <label key={format} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '10px 12px', border: '1px solid var(--line)', minWidth: 80, fontSize: 12.5, cursor: 'pointer' }}><input type="checkbox" checked={selected} onChange={() => setFormatEdit(selected ? selectedFormats.filter((item) => item !== format) : [...selectedFormats, format])} />.{format}</label>
+          })}</div>
+          <OpsActions note={String(selectedFormats.length) + ' 种格式已选'}><Btn primary disabled={!formatEdit?.length || setFlag.isPending} onClick={() => setFlag.mutate({ key: 'evidenceAllowedFormats', value: formatEdit ?? [] }, { onSuccess: () => { setFormatEdit(null); say('平台佐证格式已更新') }, onError: fail })}>{setFlag.isPending ? '保存中…' : '保存格式策略'}</Btn><Btn disabled={formatEdit === null || setFlag.isPending} onClick={() => setFormatEdit(null)}>撤销改动</Btn></OpsActions>
+        </fieldset>
+      </OpsSection>
+    </OpsTabPanel>
+    <OpsTabPanel id="flags" name="branding" active={tab}><BrandingSettings /></OpsTabPanel>
+  </div>
 }

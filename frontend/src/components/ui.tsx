@@ -371,11 +371,13 @@ export function Toggle({
   on,
   onClick,
   locked,
+  label,
   size = 'lg',
 }: {
   on: boolean
   onClick?: () => void
   locked?: boolean
+  label?: string
   size?: 'lg' | 'sm'
 }) {
   const lg = size === 'lg'
@@ -389,6 +391,7 @@ export function Toggle({
       onClick={locked ? undefined : onClick}
       disabled={locked}
       data-ui="toggle"
+      aria-label={label}
       aria-pressed={on}
       title={locked ? '该护栏被锁定，不可关闭' : undefined}
       style={{

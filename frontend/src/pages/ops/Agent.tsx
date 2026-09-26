@@ -10,6 +10,7 @@ import { useApp } from '@/stores/app'
 import type { AIMaterialFormat } from '@/api/types'
 import { ModelRouting } from './ModelRouting'
 import PlatformKnowledge from './PlatformKnowledge'
+import { OpsLoadError, OpsTabPanel, OpsTabs } from '@/components/OpsLayout'
 import '@/styles/mobile-ops.css'
 
 const GUARDS = [
@@ -82,8 +83,10 @@ export default function OpsAgent() {
   const { updateAgent, setFlag } = useOpsActions()
   const [limitEdit, setLimitEdit] = useState<Record<string, string>>({})
   const [formatEdit, setFormatEdit] = useState<AIMaterialFormat[] | null>(null)
+  const [tab, setTab] = useState('models')
 
   if (agent.isLoading) return <div className="load-bar"><span /></div>
+  if (!agent.data) return <OpsLoadError title="Agent 配置暂时无法读取" onRetry={() => void agent.refetch()} />
 
   const data = agent.data
   const limits = data?.limits ?? DEFAULT_LIMITS
@@ -120,8 +123,9 @@ export default function OpsAgent() {
     } = {}
     for (const [key, value] of Object.entries(limitEdit)) {
       const parsed = Number(value)
-      if (!Number.isInteger(parsed)) {
-        say('使用限制必须填写整数')
+      const range = [...AGENT_LIMIT_FIELDS, ...MATERIAL_LIMIT_FIELDS].find((item) => item.key === key)
+      if (!/^\d+$/.test(value) || !Number.isInteger(parsed) || !range || parsed < range.min || parsed > range.max) {
+        say(range ? `${range.name}必须填写 ${range.min}—${range.max} 的整数` : '使用限制必须填写有效整数')
         return
       }
       ;(payload as Record<string, string | number | undefined>)[key] = parsed
@@ -169,17 +173,17 @@ export default function OpsAgent() {
   ] as const
 
   return (
-    <div style={{ animation: 'rise .28s ease both' }}>
+    <div className="ops-page">
       <PageHead
         en="AGENT"
-        title="Agent 配置"
-        desc="模型路由、知识库和用量上限"
+        title="Agent 与知识库"
+        desc="连接模型，设置材料处理与问答范围，管理平台公共知识。"
         side={
           <>
             <Pill tone={ready ? 'ok' : 'bad'}>{ready ? '配置就绪' : '配置未完成'}</Pill>
             <span style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 12.5, color: 'var(--fg2)' }}>
               {enabled ? '已开启' : '已关闭'}
-              <Toggle on={enabled} locked={setFlag.isPending} onClick={toggle} />
+              <Toggle label="AI 材料整理" on={enabled} locked={setFlag.isPending} onClick={toggle} />
             </span>
           </>
         }
@@ -206,8 +210,10 @@ export default function OpsAgent() {
 		<Stat en="今日 Agent 用量" value={String(data?.usage?.dailyMessages ?? 0)} unit="条问答" note={`${data?.usage?.dailyAttachments ?? 0} 张附件 · ${f.bytes(data?.usage?.dailyAttachmentBytes ?? 0)}`} />
       </StatGrid>
 
-      <ModelRouting secretKeyReady={secretKeyReady} />
+      <OpsTabs id="agent-config" value={tab} onChange={setTab} items={[{ id: 'models', label: '模型连接' }, { id: 'materials', label: '材料整理' }, { id: 'knowledge', label: '知识问答' }, { id: 'library', label: '平台知识' }]} />
+      <OpsTabPanel id="agent-config" name="models" active={tab}><div style={{ paddingTop: 26 }}><ModelRouting secretKeyReady={secretKeyReady} /></div></OpsTabPanel>
 
+      <OpsTabPanel id="agent-config" name="materials" active={tab}>
       <Split cols="1fr 1fr">
         <SplitCol first>
           <div className="ops-inset-panel" style={{ padding: '4px 32px 30px 0' }}>
@@ -218,6 +224,7 @@ export default function OpsAgent() {
                   <span style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 11.5, color: 'var(--fg2)' }}><span>{item.name}</span><small>{item.unit}</small></span>
                   <input
                     type="number"
+                    disabled={updateAgent.isPending}
                     min={item.min}
                     max={item.max}
                     value={limitEdit[item.key] ?? String(limits[item.key])}
@@ -234,6 +241,7 @@ export default function OpsAgent() {
                   <label key={format.key} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '11px 0', cursor: 'pointer' }}>
                     <input
                       type="checkbox"
+                      disabled={updateAgent.isPending}
                       aria-label={`允许 ${format.label}`}
                       checked={materialFormats.includes(format.key)}
                       onChange={() => setFormatEdit((current) => {
@@ -262,7 +270,9 @@ export default function OpsAgent() {
           </div>
         </SplitCol>
       </Split>
+      </OpsTabPanel>
 
+      <OpsTabPanel id="agent-config" name="knowledge" active={tab}>
       <Split cols="1fr 1fr">
         <SplitCol first>
           <div className="ops-inset-panel" style={{ padding: '4px 32px 30px 0' }}>
@@ -273,7 +283,7 @@ export default function OpsAgent() {
               { key: 'knowledgeEgressEnabled' as const, label: '允许知识内容发送到模型端点', value: !!data?.knowledgeEgressEnabled, desc: '还得各班自己确认，两边都开才行' },
             ].map((item) => (
               <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: 13, borderTop: '1px solid var(--line2)', padding: '13px 0' }}>
-                <Toggle on={item.value} locked={setFlag.isPending} size="sm" onClick={() => toggleFlag(item.key, item.value, item.label)} />
+                <Toggle label={item.label} on={item.value} locked={setFlag.isPending} size="sm" onClick={() => toggleFlag(item.key, item.value, item.label)} />
                 <span style={{ display: 'flex', minWidth: 0, flex: 1, flexDirection: 'column', gap: 3 }}>
                   <strong style={{ fontSize: 12.5 }}>{item.label}</strong>
                   <small style={{ color: 'var(--fg3)', fontSize: 11.5, lineHeight: 1.6 }}>{item.desc}</small>
@@ -296,6 +306,7 @@ export default function OpsAgent() {
                   <span style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 11.5, color: 'var(--fg2)' }}><span>{item.name}</span><small>{item.unit}</small></span>
                   <input
                     type="number"
+                    disabled={updateAgent.isPending}
                     min={item.min}
                     max={item.max}
                     value={limitEdit[item.key] ?? String(limits[item.key])}
@@ -308,14 +319,16 @@ export default function OpsAgent() {
           </div>
         </SplitCol>
       </Split>
+      </OpsTabPanel>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', borderTop: '1px solid var(--line)', padding: '18px 0 30px' }}>
+      {(tab === 'materials' || tab === 'knowledge') && <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', borderTop: '1px solid var(--line)', padding: '18px 0 30px' }}>
         <Btn primary disabled={!dirty || updateAgent.isPending} onClick={save}>
           {updateAgent.isPending ? '保存中…' : '保存使用限制'}
         </Btn>
-        <Btn disabled={!dirty} onClick={() => { setLimitEdit({}); setFormatEdit(null) }}>撤销改动</Btn>
-      </div>
+        <Btn disabled={!dirty || updateAgent.isPending} onClick={() => { setLimitEdit({}); setFormatEdit(null) }}>撤销改动</Btn>
+      </div>}
 
+      {tab === 'models' && <>
       <div style={{ padding: '4px 0 0' }}>
         <Sub title="生效中的业务路由" note="当前实际在用的" />
         <Table cols="90px minmax(110px,1fr) minmax(150px,1.3fr) 110px minmax(190px,1.8fr)">
@@ -348,7 +361,8 @@ export default function OpsAgent() {
         ))}
       </div>
 
-      <PlatformKnowledge />
+      </>}
+      <OpsTabPanel id="agent-config" name="library" active={tab}><PlatformKnowledge /></OpsTabPanel>
     </div>
   )
 }

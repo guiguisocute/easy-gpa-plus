@@ -23,7 +23,7 @@ import { useReportReviewActions, useReviewReport, useReviewTasks } from '@/api/q
 import { REPORT_DECISION_LABEL, REPORT_KIND_LABEL, type ReportDecision, type ReportTask } from '@/api/types'
 
 /** 队列里的 id 是 `report:123`，接口要的是 123。 */
-export const reportTaskId = (id: string) => id.replace(/^report:/, '')
+const reportTaskId = (id: string) => id.replace(/^report:/, '')
 
 const CHOICES: { key: ReportDecision; label: string; tone: 'ok' | 'warn' | 'bad' }[] = [
   { key: 'uphold', label: '属实 · 按举报认定', tone: 'ok' },

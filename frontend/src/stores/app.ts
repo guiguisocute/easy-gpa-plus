@@ -131,9 +131,10 @@ export const useApp = create<AppState>((set, get) => ({
       if (await refreshSession()) {
         get().setUser(await api.get<User>('/me'))
       }
-    } catch {
+    } catch (error) {
       /* 网络不通或会话已作废，按未登录处理；登录页自己会再报错 */
-      setAccessToken(null)
+      // Another login/logout can supersede an in-flight restoration.
+      if (!(error instanceof DOMException && error.name === 'AbortError')) setAccessToken(null)
     } finally {
       set({ sessionReady: true })
     }

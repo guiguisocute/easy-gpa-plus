@@ -11,7 +11,7 @@ import { ROLE_LABEL, ROLE_RANK, type Role } from '@/lib/types'
 import { useApp, useEffectiveRole } from '@/stores/app'
 import { authApi, useAccountActions, useDeploy, useTenants, useWindow } from '@/api/queries'
 import * as fmt from '@/lib/format'
-import { AgentLauncher } from './AgentPanel'
+import { AgentLauncher } from './AgentLauncher'
 import { useLocalAgentPreference } from '@/stores/agentPreference'
 import '../styles/mobile-shell.css'
 

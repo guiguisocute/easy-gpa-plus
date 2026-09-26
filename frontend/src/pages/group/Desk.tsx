@@ -18,7 +18,6 @@ import { RuleCard } from '@/components/RuleCard'
 import { StudentNote } from '@/components/StudentNote'
 import { ReviewSubject } from '@/components/ReviewSubject'
 import {
-  DESK_CHOICES,
   DecisionChips,
   DeskPanel,
   DeskScoreField,
@@ -27,8 +26,8 @@ import {
   ExpectedScoreBar,
   ReviewQueueBar,
   ReviewerProgress,
-  isDeskDecision,
 } from '@/components/ReviewDesk'
+import { DESK_CHOICES, isDeskDecision } from '@/lib/reviewDesk'
 import { fieldStyle, mono, num } from '@/lib/style'
 import * as f from '@/lib/format'
 import { AI_ENABLED } from '@/api/mode'

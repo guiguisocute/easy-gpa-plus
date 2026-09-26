@@ -14,9 +14,9 @@ import {
   ExpectedScoreBar,
   ReviewQueueBar,
   ReviewerProgress,
-  deskChoices,
   type QueueItem,
 } from '@/components/ReviewDesk'
+import { deskChoices } from '@/lib/reviewDesk'
 import {
   PageHead,
   Btn,

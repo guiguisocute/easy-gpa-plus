@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { afterEach, test } from 'node:test'
 
-import { ApiError, request, setAccessToken } from './client.ts'
+import { ApiError, getAccessToken, refreshSession, request, setAccessToken, setSessionLostHandler } from './client.ts'
 
 const realFetch = globalThis.fetch
 const realLocks = Object.getOwnPropertyDescriptor(navigator, 'locks')
@@ -9,8 +9,144 @@ const realLocks = Object.getOwnPropertyDescriptor(navigator, 'locks')
 afterEach(() => {
   globalThis.fetch = realFetch
   setAccessToken(null)
+  setSessionLostHandler(null)
   if (realLocks) Object.defineProperty(navigator, 'locks', realLocks)
   else Reflect.deleteProperty(navigator, 'locks')
+})
+
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((done) => { resolve = done })
+  return { promise, resolve }
+}
+
+const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status })
+const aborted = (error: unknown) => error instanceof DOMException && error.name === 'AbortError'
+
+test('迟到的旧令牌 401 复用已刷新的令牌，不再轮换刷新 Cookie', async () => {
+  const late = deferred<Response>()
+  let refreshes = 0
+  const tokens: Array<string | undefined> = []
+  setAccessToken('expired')
+  globalThis.fetch = (async (input, init) => {
+    if (String(input).endsWith('/auth/refresh')) {
+      refreshes++
+      return json({ access_token: 'fresh' })
+    }
+    const token = (init?.headers as Record<string, string> | undefined)?.Authorization
+    tokens.push(token)
+    if (token === 'Bearer fresh') return json({ ok: true })
+    if (String(input).endsWith('/slow')) return late.promise
+    return json({}, 401)
+  }) as typeof fetch
+
+  const slow = request('/slow')
+  await request('/fast')
+  late.resolve(json({}, 401))
+  assert.deepEqual(await slow, { ok: true })
+  assert.equal(refreshes, 1)
+  assert.deepEqual(tokens, ['Bearer expired', 'Bearer expired', 'Bearer fresh', 'Bearer fresh'])
+})
+
+test('退出或重新登录后，旧会话的刷新结果不能覆盖当前令牌或重放旧请求', async () => {
+  for (const nextToken of [null, 'another-user']) {
+    const response = deferred<Response>()
+    const started = deferred<boolean>()
+    let businessCalls = 0
+    let lost = 0
+    setAccessToken('old-user')
+    setSessionLostHandler(() => { lost++ })
+    globalThis.fetch = (async (input) => {
+      if (String(input).endsWith('/auth/refresh')) {
+        started.resolve(true)
+        return response.promise
+      }
+      businessCalls++
+      return json({}, 401)
+    }) as typeof fetch
+    const pending = request('/me/password', { method: 'PUT', body: { value: 'old-operation' } })
+    const rejected = assert.rejects(pending, aborted)
+    await started.promise
+    setAccessToken(nextToken)
+    response.resolve(json({ access_token: 'old-user-refreshed' }))
+    await rejected
+    assert.equal(getAccessToken(), nextToken)
+    assert.equal(businessCalls, 1)
+    assert.equal(lost, 0)
+  }
+})
+
+test('会话变化后迟到的成功响应不会传给新账号页面', async () => {
+  for (const duringBodyRead of [false, true]) {
+    const response = deferred<Response>()
+    const body = deferred<string>()
+    const reading = deferred<boolean>()
+    setAccessToken('first-user')
+    globalThis.fetch = (async () => duringBodyRead ? {
+      ok: true, status: 200, text: () => { reading.resolve(true); return body.promise },
+    } as Response : response.promise) as typeof fetch
+    const rejected = assert.rejects(request('/me/scorecard'), aborted)
+    if (duringBodyRead) await reading.promise
+    setAccessToken('second-user')
+    response.resolve(json({ private: 'first-user-score' }))
+    body.resolve(JSON.stringify({ private: 'first-user-score' }))
+    await rejected
+    assert.equal(getAccessToken(), 'second-user')
+  }
+})
+
+test('新的登录会话不等待旧会话仍在飞的刷新', async () => {
+  // Test the per-tab promise independently of the cross-tab lock (which must
+  // serialize actual cookie rotation, including between different sessions).
+  Object.defineProperty(navigator, 'locks', { configurable: true, value: undefined })
+  const oldResponse = deferred<Response>()
+  let calls = 0
+  setAccessToken('old-user')
+  globalThis.fetch = (async () => ++calls === 1 ? oldResponse.promise : json({ access_token: 'new-user-refreshed' })) as typeof fetch
+  const oldRefresh = refreshSession()
+  setAccessToken('new-user')
+  assert.equal(await refreshSession(), true)
+  oldResponse.resolve(json({ access_token: 'old-user-refreshed' }))
+  assert.equal(await oldRefresh, false)
+  assert.equal(getAccessToken(), 'new-user-refreshed')
+})
+
+test('已取消的 401 请求不触发刷新，也不注销当前会话', async () => {
+  const controller = new AbortController()
+  let calls = 0
+  let lost = 0
+  setAccessToken('current')
+  setSessionLostHandler(() => { lost++ })
+  globalThis.fetch = (async () => {
+    calls++
+    controller.abort()
+    return json({}, 401)
+  }) as typeof fetch
+  await assert.rejects(request('/me', { signal: controller.signal }), aborted)
+  assert.equal(calls, 1)
+  assert.equal(lost, 0)
+  assert.equal(getAccessToken(), 'current')
+})
+
+test('等待共享刷新时取消的请求不会因刷新失败而清除会话', async () => {
+  const controller = new AbortController()
+  const started = deferred<boolean>()
+  const response = deferred<Response>()
+  let lost = 0
+  setAccessToken('current')
+  setSessionLostHandler(() => { lost++ })
+  globalThis.fetch = (async (input) => {
+    if (!String(input).endsWith('/auth/refresh')) return json({}, 401)
+    started.resolve(true)
+    return response.promise
+  }) as typeof fetch
+  const rejected = assert.rejects(request('/me', { signal: controller.signal }), aborted)
+  await started.promise
+  controller.abort()
+  response.resolve(json({}, 401))
+  await rejected
+  assert.equal(lost, 0)
+  assert.equal(getAccessToken(), 'current')
 })
 
 test('匿名登录的 401 保留账号密码错误，不触发 refresh', async () => {
@@ -113,6 +249,9 @@ test('主动取消保留原异常，超时单独给出中文提示', async () =>
   await assert.rejects(request('/me'), (error: unknown) => error === cancelled)
   globalThis.fetch = (async () => { throw new DOMException('Timed out', 'TimeoutError') }) as typeof fetch
   await assert.rejects(request('/me'), (error: unknown) => error instanceof ApiError && error.code === 'request_timeout' && error.message.includes('超时'))
+  const controller = new AbortController()
+  controller.abort(new DOMException('Timed out', 'TimeoutError'))
+  await assert.rejects(request('/me', { signal: controller.signal }), (error: unknown) => error instanceof ApiError && error.code === 'request_timeout')
 })
 
 test('接口 message 不是字符串时不显示对象或原始错误', async () => {

@@ -47,3 +47,15 @@ test('repeated group labels have distinct stable keys across role and mode chang
     assert.equal(new Set(rendered).size, rendered.length)
   }
 })
+
+test('ops groups use stable identities and contain every control once', () => {
+  const groups = navGroups(NAV.ops, '运维控制台')
+  assert.deepEqual(groups.map(({ id, title }) => ({ id, title })), [
+    { id: 'ops-operations', title: '日常运营' },
+    { id: 'ops-capabilities', title: '平台能力' },
+    { id: 'ops-maintenance', title: '系统维护' },
+  ])
+  assert.deepEqual(groups.flatMap((group) => group.entries.map((entry) => entry.view)), NAV.ops.map((entry) => entry.view))
+  const relabeled = NAV.ops.map((entry) => entry.groupId === 'ops-capabilities' ? { ...entry, group: '能力设置' } : entry)
+  assert.deepEqual(navGroups(relabeled, '运维').map((group) => group.id), groups.map((group) => group.id))
+})

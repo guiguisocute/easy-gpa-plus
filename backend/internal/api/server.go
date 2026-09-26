@@ -145,7 +145,7 @@ func Run(cfg *config.Config) error {
 	if err != nil {
 		return err
 	}
-	sessions, err := auth.NewSessionStore(redisClient, cfg.RefreshTokenTTL)
+	sessions, err := auth.NewSessionStore(redisClient, cfg.RefreshTokenTTL, cfg.JWTSecret)
 	if err != nil {
 		return err
 	}

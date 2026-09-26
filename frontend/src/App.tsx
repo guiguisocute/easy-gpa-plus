@@ -2,7 +2,7 @@
 
    视图用 store 里的 view 字段而不是 react-router：原型就是这个模型（一个外壳 + 一块内容区），
    URL 同步只需要 ?v= 一个参数，为此引一整个路由库不划算。
-   代价是没有嵌套路由与路由级 code splitting——前者用不上，后者用 lazy 按角色分组补上。 */
+   代价是没有嵌套路由与路由级 code splitting——前者用不上，后者用 lazy 按页面补上。 */
 
 import { lazy, Suspense, useEffect } from 'react'
 import Shell from './components/Shell'
@@ -13,26 +13,28 @@ import { workspaceNav, workspaceView, type View } from './lib/nav'
 import { useApp, useEffectiveRole } from './stores/app'
 import { useGovernance } from './api/governance'
 
-import StuHome from './pages/student/Home'
-import StuSubmit from './pages/student/Submit'
-import StuList from './pages/student/List'
-import StuFileAppeal from './pages/student/FileAppeal'
-import StuAppeals from './pages/student/Appeals'
-import StuClassPenalties from './pages/student/ClassPenalties'
-import StuResult from './pages/student/Result'
-import StuResources from './pages/student/Resources'
-/* 学生、小组、班管共用一页，所以不在 pages/student 下面。 */
-import Account from './pages/Account'
 import MailOptOut from './pages/MailOptOut'
-import RevTasks from './pages/group/Tasks'
-import RevDesk from './pages/group/Desk'
-import RevAppeals from './pages/group/Appeals'
-import RevObjections from './pages/group/Objections'
-import RevReports from './pages/group/Reports'
-import RevCat from './pages/group/Category'
-import RevHist from './pages/group/History'
 
-/* 管理端与运维台按角色分包：学生占绝大多数登录，没必要让他们下载这 19 个页面。 */
+/* 登录后只载入当前页面。提交表单、审核台和报表都有各自的访问边界，
+   不让登录页或学生首页提前下载尚未打开的工作台。 */
+const StuHome = lazy(() => import('./pages/student/Home'))
+const StuSubmit = lazy(() => import('./pages/student/Submit'))
+const StuList = lazy(() => import('./pages/student/List'))
+const StuFileAppeal = lazy(() => import('./pages/student/FileAppeal'))
+const StuAppeals = lazy(() => import('./pages/student/Appeals'))
+const StuClassPenalties = lazy(() => import('./pages/student/ClassPenalties'))
+const StuResult = lazy(() => import('./pages/student/Result'))
+const StuResources = lazy(() => import('./pages/student/Resources'))
+/* 学生、小组、班管共用一页，所以不在 pages/student 下面。 */
+const Account = lazy(() => import('./pages/Account'))
+const RevTasks = lazy(() => import('./pages/group/Tasks'))
+const RevDesk = lazy(() => import('./pages/group/Desk'))
+const RevAppeals = lazy(() => import('./pages/group/Appeals'))
+const RevObjections = lazy(() => import('./pages/group/Objections'))
+const RevReports = lazy(() => import('./pages/group/Reports'))
+const RevCat = lazy(() => import('./pages/group/Category'))
+const RevHist = lazy(() => import('./pages/group/History'))
+
 const AdmBoard = lazy(() => import('./pages/admin/Board'))
 const Governance = lazy(() => import('./pages/Governance'))
 const InitialModeChoice = lazy(() => import('./pages/ModeChoice'))

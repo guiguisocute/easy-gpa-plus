@@ -26,8 +26,12 @@ export class ApiError extends Error {
 }
 
 let accessToken: string | null = null
+// Only explicit login/logout changes the session. A token refresh belongs to
+// the same session, so concurrent responses may safely reuse its newer token.
+let sessionVersion = 0
 
 export const setAccessToken = (t: string | null) => {
+  sessionVersion++
   accessToken = t
 }
 export const getAccessToken = () => accessToken
@@ -42,14 +46,15 @@ export const setSessionLostHandler = (fn: (() => void) | null) => {
    单页内用 Promise 合并，多个标签页之间再用 Web Lock 串行化。refresh cookie
    是全站共享的，如果只做单页互斥，两个标签页仍会拿同一枚旧 cookie 同时轮换，
    后到的请求会触发重放保护，把前一个标签页刚拿到的新会话一起作废。 */
-let refreshing: Promise<boolean> | null = null
+let refreshing: { version: number; promise: Promise<boolean> } | null = null
 
-async function refreshOnce(): Promise<boolean> {
+async function refreshOnce(version: number): Promise<boolean> {
+  if (version !== sessionVersion) return false
   try {
     const res = await fetch(`${BASE}/auth/refresh`, { method: 'POST', credentials: 'same-origin' })
     if (!res.ok) return false
     const body = (await res.json()) as { access_token?: string }
-    if (!body.access_token) return false
+    if (typeof body.access_token !== 'string' || !body.access_token || version !== sessionVersion) return false
     accessToken = body.access_token
     return true
   } catch {
@@ -57,18 +62,22 @@ async function refreshOnce(): Promise<boolean> {
   }
 }
 
-async function refreshAcrossTabs(): Promise<boolean> {
+async function refreshAcrossTabs(version: number): Promise<boolean> {
   if (navigator.locks) {
-    return navigator.locks.request('easygpa-refresh-session', { mode: 'exclusive' }, refreshOnce)
+    return navigator.locks.request('easygpa-refresh-session', { mode: 'exclusive' }, () => refreshOnce(version))
   }
-  return refreshOnce()
+  return refreshOnce(version)
 }
 
 export async function refreshSession(): Promise<boolean> {
-  refreshing ??= refreshAcrossTabs().finally(() => {
-    refreshing = null
-  })
-  return refreshing
+  const version = sessionVersion
+  if (!refreshing || refreshing.version !== version) {
+    const promise = refreshAcrossTabs(version).finally(() => {
+      if (refreshing?.promise === promise) refreshing = null
+    })
+    refreshing = { version, promise }
+  }
+  return refreshing.promise
 }
 
 interface RequestOptions {
@@ -80,11 +89,18 @@ interface RequestOptions {
 }
 
 export async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
+  const version = sessionVersion
+  const token = accessToken
+  const checkSession = () => {
+    if (version !== sessionVersion) throw new DOMException('会话已切换，请重新操作', 'AbortError')
+    if (opts.signal?.aborted) throw connectionError(opts.signal.reason, opts.signal)
+  }
+  checkSession()
   const headers: Record<string, string> = { Accept: 'application/json' }
   const isForm = opts.body instanceof FormData
   /* FormData 要让浏览器自己带 boundary，手写 Content-Type 会让后端分片解析失败。 */
   if (opts.body !== undefined && !isForm) headers['Content-Type'] = 'application/json'
-  if (accessToken) headers.Authorization = `Bearer ${accessToken}`
+  if (token) headers.Authorization = `Bearer ${token}`
 
   const requestBody = opts.body === undefined ? undefined : isForm ? (opts.body as FormData) : JSON.stringify(opts.body)
   let res: Response
@@ -97,15 +113,21 @@ export async function request<T>(path: string, opts: RequestOptions = {}): Promi
       body: requestBody,
     })
   } catch (error) {
+    checkSession()
     throw connectionError(error, opts.signal)
   }
+  checkSession()
 
   /* 匿名鉴权接口的 401 是业务结果（最常见是账号或密码错误），不能拿它去
      触发 refresh，更不能把后端的准确文案覆盖成“登录已过期”。 */
   const mayRefresh = !path.startsWith('/auth/')
   if (res.status === 401 && !opts.noRetry && mayRefresh) {
-    if (await refreshSession()) return request<T>(path, { ...opts, noRetry: true })
-    accessToken = null
+    // A late 401 may belong to the token already replaced by another request.
+    // Reuse that token instead of rotating the shared refresh cookie again.
+    const refreshed = (token !== accessToken && !!accessToken) || await refreshSession()
+    checkSession()
+    if (refreshed) return request<T>(path, { ...opts, noRetry: true })
+    setAccessToken(null)
     onSessionLost?.()
     throw new ApiError(401, 'unauthenticated', '登录已过期，请重新登录')
   }
@@ -116,8 +138,10 @@ export async function request<T>(path: string, opts: RequestOptions = {}): Promi
   try {
     text = await res.text()
   } catch (error) {
+    checkSession()
     throw connectionError(error, opts.signal)
   }
+  checkSession()
   /* 网关自己出错时回的是 HTML 错误页，不是我们的 JSON。以前这里直接 JSON.parse，
      于是界面上显示的是 `Unexpected token '<', "<html> <h"... is not valid JSON`
      —— 对着这句话没人能看出是网关挂了。 */

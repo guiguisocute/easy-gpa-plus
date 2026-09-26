@@ -1453,7 +1453,10 @@ export function useOpsActions() {
         qc.setQueryData<T.List<T.Tenant>>(K.ops('tenants'), (current) => patchTenantList(current, input))
         return { previous }
       },
-      onError: (_error, _input, context) => {
+      onError: (error, _input, context) => {
+        // A session change clears the cache; do not restore another account's
+        // optimistic snapshot when its now-obsolete request is cancelled.
+        if (error instanceof DOMException && error.name === 'AbortError') return
         if (context?.previous) qc.setQueryData(K.ops('tenants'), context.previous)
       },
       onSettled: refreshTenants,

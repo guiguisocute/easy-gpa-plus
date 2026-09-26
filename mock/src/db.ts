@@ -23,6 +23,7 @@ import type {
   Tenant,
   UserEmail,
   MailPreferences,
+  MailConfig,
   WhitelistRow,
 } from '@/api/types'
 import type { HonorRoll, TimelineWindow } from '@/api/types'
@@ -146,6 +147,7 @@ export interface Store {
   users: DemoUser[]
   emails: Record<string, UserEmail[]>
   mailPreferences?: Record<string, MailPreferences>
+  mail?: MailConfig
   whitelist: WhitelistRow[]
   scheme: SchemeConfig
   schemes: SchemeDraft[]

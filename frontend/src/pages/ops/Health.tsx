@@ -3,7 +3,8 @@
    这一页只显示基础设施状态，不含任何业务数据——连"某班有几条提交"都不显示。
    查看健康状态本身也会写平台审计（记录的是运维看了什么，不是运维看到了什么）。 */
 
-import { Dot, Note, PageHead, Row, Split, SplitCol, Stat, StatGrid, Sub, Table, THead, TRow } from '@/components/ui'
+import { Btn, Dot, Note, PageHead, Row, Split, SplitCol, Stat, StatGrid, Sub, Table, THead, TRow } from '@/components/ui'
+import { OpsLoadError } from '@/components/OpsLayout'
 import { mono } from '@/lib/style'
 import { useDeploy, useHealth, useQueues } from '@/api/queries'
 
@@ -12,7 +13,8 @@ const LABEL: Record<string, string> = {
 	postgresOps: 'PostgreSQL · 运维连接',
   redis: 'Redis · 事件流与会话',
   objectStore: 'Garage · 佐证与导出产物',
-  ses: '腾讯云 SES API · 通知投递通道',
+  ses: '邮件投递通道',
+  mail: '邮件投递通道',
 }
 
 export default function OpsHealth() {
@@ -25,15 +27,16 @@ export default function OpsHealth() {
   const degraded = health.data?.status === 'degraded'
 
   return (
-    <div style={{ animation: 'rise .28s ease both' }}>
+    <div className="ops-page">
       <PageHead
         en="HEALTH"
         title="组件健康"
         desc="核心服务、通知通道和数据库"
         side={
           <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-            <Dot tone={degraded ? 'warn' : 'ok'} />
-            <span style={{ fontSize: 12.5, color: 'var(--fg2)' }}>{bad ? `${bad} 项不可用` : '全部正常'}</span>
+            <Dot tone={!health.data || degraded ? 'warn' : 'ok'} />
+            <span style={{ fontSize: 12.5, color: 'var(--fg2)' }}>{!health.data ? '状态未确认' : bad ? `${bad} 项不可用` : degraded ? '部分依赖需要检查' : '全部正常'}</span>
+            <Btn disabled={health.isFetching || queues.isFetching} onClick={() => { void health.refetch(); void queues.refetch(); void deploy.refetch() }}>刷新状态</Btn>
           </span>
         }
       />
@@ -43,13 +46,13 @@ export default function OpsHealth() {
           en="总体状态"
           value={health.data?.status === 'ok' ? '正常' : health.data?.status === 'degraded' ? '降级' : '—'}
           note="任一依赖不可用即为降级"
-          tone={degraded ? 'var(--red)' : 'var(--ok)'}
+          tone={degraded ? 'var(--red)' : health.data ? 'var(--ok)' : undefined}
         />
         <Stat en="迁移版本" value={String(deploy.data?.migrationVersion ?? '—')} note="已应用的最高一号数据库迁移" />
-        <Stat en="事件流积压" value={String(queues.data?.items.reduce((s, g) => s + g.pending, 0) ?? 0)} unit="条" note="消费组未确认的消息" />
+        <Stat en="事件流积压" value={String(queues.data?.items.reduce((s, g) => s + g.pending, 0) ?? '—')} unit="条" note="消费组未确认的消息" />
         <Stat
           en="失败队列"
-          value={String(queues.data?.deadLetters ?? 0)}
+          value={String(queues.data?.deadLetters ?? '—')}
           unit="条"
           note="多次重试失败，需人工处理"
           tone={(queues.data?.deadLetters ?? 0) > 0 ? 'var(--red)' : undefined}
@@ -58,7 +61,7 @@ export default function OpsHealth() {
 
       <div style={{ padding: '26px 0 0' }}>
 		<Sub title="依赖组件" note="数据库、缓存与文件存储" />
-        {health.isLoading ? (
+        {health.isError ? <OpsLoadError title="组件状态暂时无法读取" onRetry={() => void health.refetch()} /> : health.isLoading ? (
           <div className="load-bar"><span /></div>
         ) : (
           <Table cols="minmax(180px,2fr) 110px minmax(160px,2fr)">
@@ -74,7 +77,7 @@ export default function OpsHealth() {
                       {c.status === 'ok' ? '正常' : c.status === 'down' ? '不可用' : c.status}
                     </span>
                   </span>,
-                  <span key="c" style={{ fontSize: 12, color: 'var(--fg3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span key="c" style={{ fontSize: 12, color: 'var(--fg3)', overflowWrap: 'anywhere', lineHeight: 1.8 }}>
                     {c.detail ?? '—'}
                   </span>,
                 ]}
@@ -89,7 +92,7 @@ export default function OpsHealth() {
           <div style={{ padding: '30px 0' }}>
             <Sub title="消息队列" note="事件流与消费组状态" />
             {(queues.data?.items ?? []).map((g) => (
-              <div key={g.group} style={{ display: 'flex', alignItems: 'center', gap: 12, borderTop: '1px solid var(--line2)', padding: '13px 0', flexWrap: 'wrap' }}>
+              <div key={JSON.stringify([g.stream, g.group])} style={{ display: 'flex', alignItems: 'center', gap: 12, borderTop: '1px solid var(--line2)', padding: '13px 0', flexWrap: 'wrap' }}>
                 <span style={{ ...mono('11px', '.02em'), color: 'var(--fg2)' }}>{g.group}</span>
                 <span style={{ fontSize: 12.5, color: 'var(--fg3)' }}>{g.consumers} 个消费者</span>
                 <span style={{ marginLeft: 'auto', fontSize: 12.5, color: g.pending > 0 ? 'var(--warn)' : 'var(--fg3)' }}>
@@ -97,7 +100,8 @@ export default function OpsHealth() {
                 </span>
               </div>
             ))}
-            {(queues.data?.items.length ?? 0) === 0 && (
+            {queues.isError && <OpsLoadError title="队列状态暂时无法读取" onRetry={() => void queues.refetch()} />}
+            {!queues.isError && (queues.data?.items.length ?? 0) === 0 && (
               <div style={{ fontSize: 12.5, color: 'var(--fg3)' }}>工作进程启动后会显示消费组。</div>
             )}
           </div>

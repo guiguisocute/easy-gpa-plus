@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -99,7 +100,9 @@ func (s *Server) refresh(c *gin.Context) {
 	}
 	response, err := s.deps.Auth.Refresh(c.Request.Context(), token)
 	if err != nil {
-		s.clearRefreshCookie(c)
+		if errors.Is(err, auth.ErrInvalidRefresh) {
+			s.clearRefreshCookie(c)
+		}
 		writeServiceError(c, err)
 		return
 	}

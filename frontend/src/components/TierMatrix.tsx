@@ -11,18 +11,9 @@ import type { CSSProperties } from 'react'
 import { enumOptionPath } from '@/lib/schemeTree'
 import { num } from '@/lib/style'
 import * as f from '@/lib/format'
-import type { ScoreRule } from '@/lib/types'
-
-export type EnumRule = Extract<ScoreRule, { type: 'enum' }>
+import type { EnumRule } from '@/lib/tierMatrix'
 
 const uniq = (values: string[]) => [...new Set(values)]
-
-/** 矩阵只在每一档都是「级别·等次」两段、且等次不止两种时才划得来。 */
-export function wantsMatrix(rule: EnumRule) {
-  const paths = rule.options.map(enumOptionPath)
-  if (paths.length < 6 || !paths.every((path) => path.length === 2)) return false
-  return uniq(paths.map((path) => path[1])).length >= 3
-}
 
 export function TierMatrix({ rule, picked }: { rule: EnumRule; picked?: string }) {
   const entries = rule.options.map((option) => ({ option, path: enumOptionPath(option) }))

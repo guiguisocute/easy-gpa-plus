@@ -13,6 +13,7 @@ import { useBackupRemote, useBackups, useLifecycle, useOpsActions } from '@/api/
 import type * as T from '@/api/types'
 import type { LifecyclePolicy } from '@/api/types'
 import '@/styles/mobile-ops.css'
+import { OpsLoadError, OpsTabPanel, OpsTabs } from '@/components/OpsLayout'
 
 const KIND_LABEL: Record<string, string> = {
   backup: '全量备份',
@@ -53,16 +54,19 @@ function RemoteBackupCard() {
 	const say = useApp((s) => s.say)
 	const remote = useBackupRemote()
 	const { updateBackupRemote, clearBackupRemote, testBackupRemote, parseBucketUrl } = useOpsActions()
-	const [form, setForm] = useState<T.BackupRemoteConfig | null>(null)
+	const [edit, setEdit] = useState<Partial<T.BackupRemoteConfig>>({})
 	const [link, setLink] = useState('')
 	const [accessKey, setAccessKey] = useState('')
 	const [secretKey, setSecretKey] = useState('')
-	useEffect(() => { if (remote.data?.config && !form) setForm(remote.data.config) }, [remote.data?.config, form])
+	const form = remote.data?.config ? { ...remote.data.config, ...edit } : null
+	const setForm = (value: T.BackupRemoteConfig | null) => setEdit(value ?? {})
 
-	if (remote.isLoading || !form) return <div className="load-bar"><span /></div>
+	if (remote.isLoading) return <div className="load-bar"><span /></div>
+	if (!form) return <OpsLoadError title="远程副本配置暂时无法读取" onRetry={() => void remote.refetch()} />
 	const state = remote.data
 	const set = (patch: Partial<T.BackupRemoteConfig>) => setForm({ ...form, ...patch })
-	const credentialsReady = (state?.accessKeySet && state?.secretKeySet) || (accessKey !== '' && secretKey !== '')
+	const dirty = JSON.stringify(form) !== JSON.stringify(state?.config) || accessKey !== '' || secretKey !== ''
+	const busy = updateBackupRemote.isPending || clearBackupRemote.isPending || testBackupRemote.isPending
 
 	const save = () => {
 		const patch: T.BackupRemoteUpdate = { ...form }
@@ -70,13 +74,13 @@ function RemoteBackupCard() {
 		if (accessKey !== '') patch.accessKey = accessKey
 		if (secretKey !== '') patch.secretKey = secretKey
 		updateBackupRemote.mutate(patch, {
-			onSuccess: () => { setAccessKey(''); setSecretKey(''); say('远程副本配置已保存') },
+			onSuccess: () => { setEdit({}); setAccessKey(''); setSecretKey(''); say('远程副本配置已保存') },
 			onError: (e) => say(e instanceof ApiError ? e.message : '保存失败'),
 		})
 	}
 
 	return (
-		<div style={{ padding: '30px 0 0' }}>
+		<fieldset className="ops-form" disabled={busy} style={{ padding: '30px 0 0' }}>
 			<Sub title="远程副本" note="每天的备份加密后推到机房外的云桶" />
 
 			{state && !state.secretKeyReady && (
@@ -167,11 +171,11 @@ function RemoteBackupCard() {
 			</div>
 
 			<div style={{ marginTop: 14, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-				<Btn primary tone="ok" disabled={updateBackupRemote.isPending} onClick={save}>
+				<Btn primary tone="ok" disabled={!dirty || busy} onClick={save}>
 					{updateBackupRemote.isPending ? '保存中…' : '保存配置'}
 				</Btn>
 				<Btn
-					disabled={!credentialsReady || testBackupRemote.isPending}
+					disabled={dirty || !state?.accessKeySet || !state?.secretKeySet || busy}
 					onClick={() => testBackupRemote.mutate(undefined, {
 						onSuccess: () => say('测试通过 · 写入、读回、删除三步都成功'),
 						onError: (e) => say(e instanceof ApiError ? e.message : '连不上这个桶'),
@@ -186,7 +190,7 @@ function RemoteBackupCard() {
 						onError: (e) => say(e instanceof ApiError ? e.message : '清空失败'),
 					})
 				}}>清空配置</Btn>
-				<Btn onClick={() => { if (remote.data?.config) { setForm(remote.data.config); setAccessKey(''); setSecretKey('') } }}>撤销</Btn>
+				<Btn disabled={!dirty || busy} onClick={() => { setEdit({}); setAccessKey(''); setSecretKey('') }}>撤销</Btn>
 			</div>
 
 			<div style={{ marginTop: 16 }}>
@@ -199,7 +203,7 @@ function RemoteBackupCard() {
 					归档用 age 公钥加密，私钥不在这台机器上。私钥丢了，桶里这些备份就再也打不开。
 				</Note>
 			</div>
-		</div>
+		</fieldset>
 	)
 }
 
@@ -211,6 +215,7 @@ export default function OpsBackup() {
 	const lifecycle = useLifecycle()
 	const { restoreDrill, createBackup, updateLifecycle } = useOpsActions()
 	const [policyEdit, setPolicyEdit] = useState<LifecyclePolicy | null>(null)
+	const [tab, setTab] = useState('records')
 	useEffect(() => { if (lifecycle.data?.policy && !policyEdit) setPolicyEdit(lifecycle.data.policy) }, [lifecycle.data?.policy, policyEdit])
 
   const rows = backups.data?.items ?? []
@@ -223,7 +228,7 @@ export default function OpsBackup() {
   const failed = rows.filter((r) => r.status === 'failed').length
 
   return (
-    <div style={{ animation: 'rise .28s ease both' }}>
+    <div className="ops-page">
       <PageHead
         en="BACKUP"
         title="备份与恢复"
@@ -262,6 +267,8 @@ export default function OpsBackup() {
         />
       </StatGrid>
 
+      <OpsTabs id="backup" value={tab} onChange={setTab} items={[{ id: 'records', label: '备份与演练' }, { id: 'remote', label: '远程副本' }, { id: 'policy', label: '计划与保留策略' }]} />
+      <OpsTabPanel id="backup" name="records" active={tab}>
       <div style={{ padding: '26px 0 0' }}>
 		<Sub title="备份与演练记录" note={failed > 0 ? `本页 ${failed} 条失败 · 共 ${backups.data?.total ?? 0} 条` : `共 ${backups.data?.total ?? 0} 条 · 第 ${page} 页`} />
         {backups.isLoading ? (
@@ -289,18 +296,23 @@ export default function OpsBackup() {
         )}
 		{(backups.data?.total ?? 0) > 50 && <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}><Btn disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>上一页</Btn><Btn disabled={page * 50 >= (backups.data?.total ?? 0)} onClick={() => setPage((value) => value + 1)}>下一页</Btn></div>}
       </div>
+      </OpsTabPanel>
 
-	  <RemoteBackupCard />
+	  <OpsTabPanel id="backup" name="remote" active={tab}><RemoteBackupCard /></OpsTabPanel>
 
-	  {policyEdit && <div style={{ padding: '30px 0 0' }}>
+	  <OpsTabPanel id="backup" name="policy" active={tab}>
+      {lifecycle.isError && <OpsLoadError title="保留策略暂时无法读取" onRetry={() => void lifecycle.refetch()} />}
+	  {policyEdit && <fieldset className="ops-form" disabled={updateLifecycle.isPending} style={{ padding: '30px 0 0' }}>
 		<Sub title="数据生命周期与转换上限" note="修改后立即生效" />
 		<label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 0', borderTop: '1px solid var(--line2)', cursor: 'pointer' }}><input type="checkbox" checked={policyEdit.backupEnabled} onChange={(e) => setPolicyEdit({ ...policyEdit, backupEnabled: e.target.checked })} /><span style={{ fontSize: 12.5 }}>启用每日自动备份</span></label>
 		<div className="ops-auto-form-grid">
 		  {LIFECYCLE_FIELDS.map((item) => <label key={item.key} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}><span style={{ fontSize: 11.5, color: 'var(--fg2)' }}>{item.name}</span><span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><input type={item.type ?? 'number'} min={1} value={String(policyEdit[item.key])} onChange={(e) => setPolicyEdit({ ...policyEdit, [item.key]: item.type === 'time' ? e.target.value : Number(e.target.value) })} style={{ ...fieldStyle, minWidth: 0, flex: 1 }} /><small style={{ color: 'var(--fg3)' }}>{item.unit}</small></span></label>)}
 		</div>
 		<div style={{ marginTop: 16, display: 'flex', gap: 8 }}><Btn primary disabled={updateLifecycle.isPending} onClick={() => updateLifecycle.mutate(policyEdit, { onSuccess: () => say('生命周期与转换策略已保存'), onError: (e) => say(e instanceof ApiError ? e.message : '保存失败') })}>保存策略</Btn><Btn onClick={() => lifecycle.data?.policy && setPolicyEdit(lifecycle.data.policy)}>撤销</Btn></div>
-	  </div>}
+	  </fieldset>}
+      </OpsTabPanel>
 
+      {tab === 'records' && <>
       <Split cols="1fr 1fr">
         <SplitCol first>
           <div style={{ padding: '30px 0' }}>
@@ -334,6 +346,7 @@ export default function OpsBackup() {
           </div>
         </SplitCol>
       </Split>
+      </>}
     </div>
   )
 }

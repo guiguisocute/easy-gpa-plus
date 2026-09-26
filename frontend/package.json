@@ -17,7 +17,7 @@
     "mock:build": "npm run typecheck:mock && vite build --config ../mock/vite.config.ts && node ../scripts/package-demo-source.mjs",
     "typecheck:mock": "tsc --noEmit -p tsconfig.mock.json",
     "mock:deploy": "npm run mock:build && node ../scripts/deploy-mock.mjs",
-    "test:mock": "node --test ../e2e/mock-governance.test.mjs"
+    "test:mock": "node --test --test-concurrency=1 \"../e2e/mock-*.test.mjs\""
   },
   "dependencies": {
     "@assistant-ui/react": "^0.15.13",

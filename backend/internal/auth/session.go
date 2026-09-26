@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
@@ -24,15 +25,19 @@ type RefreshSession struct {
 }
 
 type SessionStore struct {
-	redis *redis.Client
-	ttl   time.Duration
+	redis  *redis.Client
+	ttl    time.Duration
+	secret []byte
 }
 
-func NewSessionStore(client *redis.Client, ttl time.Duration) (*SessionStore, error) {
+func NewSessionStore(client *redis.Client, ttl time.Duration, secret string) (*SessionStore, error) {
 	if client == nil || ttl <= 0 {
 		return nil, errors.New("Redis client and positive refresh TTL are required")
 	}
-	return &SessionStore{redis: client, ttl: ttl}, nil
+	if len(secret) < 32 {
+		return nil, errors.New("refresh signing secret must be at least 32 bytes")
+	}
+	return &SessionStore{redis: client, ttl: ttl, secret: []byte(secret)}, nil
 }
 
 func (s *SessionStore) Create(ctx context.Context, identity Identity) (token string, session RefreshSession, err error) {
@@ -40,7 +45,7 @@ func (s *SessionStore) Create(ctx context.Context, identity Identity) (token str
 	if err != nil {
 		return "", RefreshSession{}, err
 	}
-	token, err = newRefreshToken(sessionID)
+	token, err = s.newRefreshToken(sessionID)
 	if err != nil {
 		return "", RefreshSession{}, err
 	}
@@ -64,9 +69,9 @@ func (s *SessionStore) Create(ctx context.Context, identity Identity) (token str
 var rotateScript = redis.NewScript(`
 local payload = redis.call('GET', KEYS[1])
 if not payload then
-  local active = redis.call('GET', KEYS[3])
-  if active then
-    redis.call('DEL', ARGV[3] .. active)
+  if ARGV[5] == '1' then
+    local active = redis.call('GET', KEYS[3])
+    if active then redis.call('DEL', ARGV[3] .. active) end
     redis.call('DEL', KEYS[3])
   end
   return false
@@ -81,29 +86,49 @@ end
 redis.call('DEL', KEYS[1])
 redis.call('SET', KEYS[2], payload, 'PX', ARGV[2])
 redis.call('SET', KEYS[3], ARGV[4], 'PX', ARGV[2])
+redis.call('SADD', KEYS[4], ARGV[6])
+redis.call('PEXPIRE', KEYS[4], ARGV[2])
 return payload
 `)
 
+// A family ID is public in the access token. A missing full-token hash only
+// proves replay when the token's signature proves that we issued it. Legacy
+// unsigned credentials remain usable while their current hash is stored and
+// are upgraded on rotation, without keeping unbounded per-rotation history.
 func (s *SessionStore) Rotate(ctx context.Context, oldToken string) (newToken string, session RefreshSession, err error) {
 	sessionID, err := refreshSessionID(oldToken)
 	if err != nil {
 		return "", RefreshSession{}, ErrInvalidRefresh
 	}
-	newToken, err = newRefreshToken(sessionID)
+	newToken, err = s.newRefreshToken(sessionID)
 	if err != nil {
 		return "", RefreshSession{}, err
 	}
 	oldHash := tokenHash(oldToken)
 	newHash := tokenHash(newToken)
-	result, err := rotateScript.Run(ctx, s.redis,
-		[]string{refreshKey(oldHash), refreshKey(newHash), familyKey(sessionID)},
-		oldHash, s.ttl.Milliseconds(), "auth:refresh:", newHash,
-	).Result()
-	if errors.Is(err, redis.Nil) || result == nil || result == false {
-		return "", RefreshSession{}, ErrInvalidRefresh
-	}
-	if err != nil {
+	// Read the stored identity in Go so bigint user IDs keep their precision.
+	// The script rechecks the same immutable token hash before changing either
+	// the family or its revocation index; a concurrent rotation cannot revive it.
+	stored, err := s.redis.Get(ctx, refreshKey(oldHash)).Bytes()
+	if err != nil && !errors.Is(err, redis.Nil) {
 		return "", RefreshSession{}, err
+	}
+	var indexedSession RefreshSession
+	if err == nil && json.Unmarshal(stored, &indexedSession) != nil {
+		return "", RefreshSession{}, errors.New("stored refresh session is invalid")
+	}
+	result, err := rotateScript.Run(ctx, s.redis,
+		[]string{refreshKey(oldHash), refreshKey(newHash), familyKey(sessionID), userSessionsKey(indexedSession.Identity.UserID)},
+		oldHash, s.ttl.Milliseconds(), "auth:refresh:", newHash, s.validRefreshProof(oldToken), sessionID,
+	).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return "", RefreshSession{}, ErrInvalidRefresh
+		}
+		return "", RefreshSession{}, err
+	}
+	if result == nil || result == false {
+		return "", RefreshSession{}, ErrInvalidRefresh
 	}
 	payload, ok := result.(string)
 	if !ok || json.Unmarshal([]byte(payload), &session) != nil {
@@ -112,21 +137,41 @@ func (s *SessionStore) Rotate(ctx context.Context, oldToken string) (newToken st
 	return newToken, session, nil
 }
 
+var revokeScript = redis.NewScript(`
+local payload = redis.call('GET', KEYS[1])
+if not payload and ARGV[2] ~= '1' then return false end
+local active = redis.call('GET', KEYS[2])
+if active then
+  local current = redis.call('GET', ARGV[1] .. active)
+  if current then payload = current end
+  redis.call('DEL', ARGV[1] .. active)
+end
+redis.call('DEL', KEYS[1], KEYS[2])
+return payload
+`)
+
 func (s *SessionStore) Revoke(ctx context.Context, token string) error {
 	sessionID, err := refreshSessionID(token)
 	if err != nil {
 		return nil
 	}
 	hash := tokenHash(token)
-	payload, _ := s.redis.Get(ctx, refreshKey(hash)).Bytes()
-	pipe := s.redis.TxPipeline()
-	pipe.Del(ctx, refreshKey(hash), familyKey(sessionID))
-	var session RefreshSession
-	if json.Unmarshal(payload, &session) == nil {
-		pipe.SRem(ctx, userSessionsKey(session.Identity.UserID), sessionID)
+	// Check possession and delete the current family token atomically, including
+	// when logout races with a refresh that has just rotated the supplied token.
+	payload, err := revokeScript.Run(ctx, s.redis,
+		[]string{refreshKey(hash), familyKey(sessionID)}, "auth:refresh:", s.validRefreshProof(token),
+	).Text()
+	if errors.Is(err, redis.Nil) {
+		return nil
 	}
-	_, err = pipe.Exec(ctx)
-	return err
+	if err != nil {
+		return err
+	}
+	var session RefreshSession
+	if json.Unmarshal([]byte(payload), &session) == nil {
+		return s.redis.SRem(ctx, userSessionsKey(session.Identity.UserID), sessionID).Err()
+	}
+	return nil
 }
 
 func (s *SessionStore) RevokeUser(ctx context.Context, userID int64, exceptSessionID string) error {
@@ -162,6 +207,32 @@ func newRefreshToken(sessionID string) (string, error) {
 		return "", err
 	}
 	return sessionID + "." + base64.RawURLEncoding.EncodeToString(raw), nil
+}
+
+func (s *SessionStore) newRefreshToken(sessionID string) (string, error) {
+	token, err := newRefreshToken(sessionID)
+	if err != nil {
+		return "", err
+	}
+	return token + "." + base64.RawURLEncoding.EncodeToString(s.refreshProof(token)), nil
+}
+
+func (s *SessionStore) refreshProof(token string) []byte {
+	mac := hmac.New(sha256.New, s.secret)
+	// Domain separation keeps this proof distinct from access-token signatures
+	// even though both use the deployment's existing JWT secret.
+	_, _ = mac.Write([]byte("easygpa-refresh-v1\x00"))
+	_, _ = mac.Write([]byte(token))
+	return mac.Sum(nil)
+}
+
+func (s *SessionStore) validRefreshProof(token string) bool {
+	lastDot := strings.LastIndexByte(token, '.')
+	if lastDot < 0 {
+		return false
+	}
+	proof, err := base64.RawURLEncoding.DecodeString(token[lastDot+1:])
+	return err == nil && hmac.Equal(proof, s.refreshProof(token[:lastDot]))
 }
 
 func refreshSessionID(token string) (string, error) {

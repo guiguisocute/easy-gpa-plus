@@ -102,6 +102,17 @@ type Mail struct {
 	SESFromName    string            `json:"sesFromName,omitempty"`
 	SESReplyTo     string            `json:"sesReplyTo,omitempty"`
 	SESTemplateIDs map[string]uint64 `json:"sesTemplateIds,omitempty"`
+	// Provider credentials stay separate so switching a channel never sends
+	// another service's secret to the newly selected endpoint.
+	SMTPHost              string `json:"smtpHost,omitempty"`
+	SMTPPort              int    `json:"smtpPort,omitempty"`
+	SMTPSecurity          string `json:"smtpSecurity,omitempty"`
+	SMTPUsername          string `json:"smtpUsername,omitempty"`
+	SMTPPassword          string `json:"smtpPassword,omitempty"`
+	AliyunRegion          string `json:"aliyunRegion,omitempty"`
+	AliyunAccessKeyID     string `json:"aliyunAccessKeyId,omitempty"`
+	AliyunAccessKeySecret string `json:"aliyunAccessKeySecret,omitempty"`
+	ResendAPIKey          string `json:"resendApiKey,omitempty"`
 }
 
 // RequiredMailTemplates is the one registry shared by template loading,
@@ -231,7 +242,7 @@ func (m Mail) SESConfigured() bool {
 }
 
 func DefaultMail() Mail {
-	return Mail{Provider: "tencent_ses", PerMinute: 2, PerDay: 600, QuietStart: "22:00", QuietEnd: "07:00", SESRegion: "ap-guangzhou"}
+	return Mail{Provider: "tencent_ses", PerMinute: 2, PerDay: 600, QuietStart: "22:00", QuietEnd: "07:00", SESRegion: "ap-guangzhou", SMTPPort: 587, SMTPSecurity: "starttls", AliyunRegion: "cn-hangzhou"}
 }
 
 type cachedValue struct {
@@ -438,7 +449,7 @@ func (f *Flags) normalize() {
 
 func (m *Mail) normalize() {
 	defaults := DefaultMail()
-	if m.Provider != defaults.Provider {
+	if m.Provider == "" {
 		m.Provider = defaults.Provider
 	}
 	if m.PerMinute <= 0 {
@@ -458,6 +469,15 @@ func (m *Mail) normalize() {
 	}
 	if m.SESTemplateIDs == nil {
 		m.SESTemplateIDs = make(map[string]uint64)
+	}
+	if m.SMTPPort == 0 {
+		m.SMTPPort = defaults.SMTPPort
+	}
+	if m.SMTPSecurity == "" {
+		m.SMTPSecurity = defaults.SMTPSecurity
+	}
+	if m.AliyunRegion == "" {
+		m.AliyunRegion = defaults.AliyunRegion
 	}
 }
 

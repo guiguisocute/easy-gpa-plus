@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import App from '@/App'
-import { ModeChoice, type ClassMode } from '@/pages/ModeChoice'
+import type { ClassMode } from '@/pages/ModeChoice'
 import { api, setAccessToken } from '@/api/client'
 import { authApi } from '@/api/queries'
 import { useApp } from '@/stores/app'
@@ -10,6 +10,8 @@ import { db, DEMO_PASSWORD, resetStore } from './db'
 import { startCentralizedDemo } from './governance'
 import DemoHint from './Hint'
 import './workspace.css'
+
+const ModeChoice = lazy(() => import('@/pages/ModeChoice').then(module => ({ default: module.ModeChoice })))
 
 function currentMode(): ClassMode {
   const chosen = db().demoMode ?? (db().governance?.mode === 'collective' ? 'collective' : null)
@@ -53,14 +55,14 @@ export default function DemoWorkspace() {
   }
   if (choosing)
     return (
-      <ModeChoice
+      <Suspense fallback={<div className="load-bar" role="status" aria-label="正在打开模式选择"><span /></div>}><ModeChoice
         demo
         demoCurrentMode={mode}
         onCancel={() => { setError(''); setChoosing(false) }}
         onChoose={(value) => void choose(value)}
         pending={pending}
         error={error}
-      />
+      /></Suspense>
     )
   return (
     <div className="demo-workspace">
